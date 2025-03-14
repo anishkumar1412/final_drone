@@ -15,14 +15,14 @@ function Login() {
     const {setAToken}=useContext(AdminContext)
     const {setDToken} = useContext(DoctorContext)
 
-    const backendUrl = useContext(AdminContext)
+    const {backendUrl} = useContext(AdminContext)
 
     const onSubmitHandler = async(event)=>{
       event.preventDefault()
 
       try {
         if(state==='Super Admin'){
-           const {data} = await axios.post(backendUrl+'/api/admin/login',{email,password})
+           const {data} = await axios.post(`${backendUrl}/api/admin/login`,{email,password})
            console.log(data.message)
            if(data.success){
             localStorage.setItem('aToken',data.token)
