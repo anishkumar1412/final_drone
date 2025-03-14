@@ -10,7 +10,7 @@ const Refund = () => {
   const [selectedRefund, setSelectedRefund] = useState(null);
   const [refundStatuses, setRefundStatuses] = useState({});
   const [SanctionedRefundAmount, setSanctionedRefundAmount] = useState(0);
-  const backendUrl = useContext(AdminContext)
+  const {backendUrl} = useContext(AdminContext)
 
   useEffect(() => {
     const initialStatuses = refunds.reduce((acc, refund) => {

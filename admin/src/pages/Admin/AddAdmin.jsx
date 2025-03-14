@@ -27,7 +27,7 @@ export default function AddAdmin() {
   const [access, setAccess] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const backendUrl = useContext(AdminContext)
+  const {backendUrl} = useContext(AdminContext)
 
   const handleCheckboxChange = (permission) => {
     setAccess((prev) =>

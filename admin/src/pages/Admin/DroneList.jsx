@@ -5,7 +5,7 @@ import { AdminContext } from '../../context/AdminContext';
 function DroneList() {
   const { drones, removeDrone, updateDroneAvailability } = useContext(AdminContext);
   const [selectedDrone, setSelectedDrone] = useState(null);
-  const backendUrl = useContext(AdminContext)
+  const {backendUrl} = useContext(AdminContext)
 
   const handleAvailabilityChange = async (droneId, currentAvailability) => {
     try {

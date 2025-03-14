@@ -13,7 +13,7 @@ function Appointment() {
 
   const [editRow, setEditRow] = useState(null);
   const [editCopilotRow, setEditCopilotRow] = useState(null); // Track which row is in edit mode
-  const backendUrl = useContext(AdminContext)
+  const {backendUrl} = useContext(AdminContext)
 
   useEffect(() => {
     getAllBokings();

@@ -9,7 +9,7 @@ function AddCrop() {
     const [cropImg, setCropImg] = useState(null);
     const [cropName, setCropeName] = useState('');
     const [cropPerAcer,setCropPerAcer] = useState(0)
-    const backendUrl = useContext(AdminContext)
+    const {backendUrl} = useContext(AdminContext)
 
     const { crops,removeCrop } = useContext(AdminContext)
     console.log(crops)

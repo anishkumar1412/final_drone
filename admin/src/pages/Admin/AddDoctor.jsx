@@ -31,7 +31,7 @@ function AddDrone() {
   const [extaintionBoard,setExtensionBoard] = useState('')
   const [battery,setBattery] = useState('')
   const [transmeterAndReciever,setTransmiterAndReciver]= useState('')
-  const backendUrl = useContext(AdminContext)
+  const {backendUrl} = useContext(AdminContext)
 
 
 
