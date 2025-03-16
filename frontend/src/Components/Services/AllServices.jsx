@@ -6,49 +6,49 @@ const App = () => {
       title: "Wind Drone",
       description: "Harness wind energy with precision using advanced drone technology.",
       buttonText: "LEARN MORE",
-      image: "public/wind.png", // Replace with the correct path for the image
+      image: "/wind.png", // Replace with the correct path for the image
     },
     {
       title: "Videography Drone",
       description: "Capture breathtaking aerial footage for all your creative projects.",
       buttonText: "GET STARTED",
-      image: "public/Videography-Drone-1.jpeg", // Replace with the correct path for the image
+      image: "/Videography-Drone-1.jpeg", // Replace with the correct path for the image
     },
     {
       title: "Structural Drone",
       description: "Inspect and monitor structural integrity efficiently and safely.",
       buttonText: "EXPLORE OPTIONS",
-      image: "public/structural-1-800x534.jpg", // Replace with the correct path for the image
+      image: "/structural-1-800x534.jpg", // Replace with the correct path for the image
     },
     {
       title: "Warehouse Management Drone",
       description: "Streamline your inventory with our state-of-the-art warehouse drones.",
       buttonText: "DISCOVER MORE",
-      image: "public/Warehouse-Management-Drone-400x300.jpeg", // Replace with the correct path for the image
+      image: "/Warehouse-Management-Drone-400x300.jpeg", // Replace with the correct path for the image
     },
     {
       title: "Ippo Drone",
       description: "Revolutionize transportation with cutting-edge Ippo Drone technology.",
       buttonText: "LEARN MORE",
-      image: "public/Ippo-Drone-400x300.jpeg", // Replace with the correct path for the image
+      image: "/Ippo-Drone-400x300.jpeg", // Replace with the correct path for the image
     },
     {
       title: "Armed Tactical Drone",
       description: "Ensure security and tactical advantage with our armed drone solutions.",
       buttonText: "KNOW MORE",
-      image: "public/Armed-Tactical-Drone-600x450.jpeg", // Replace with the correct path for the image
+      image: "/Armed-Tactical-Drone-600x450.jpeg", // Replace with the correct path for the image
     },
     {
       title: "Firefighting Drone",
       description: "Combat fires efficiently with advanced aerial firefighting solutions.",
       buttonText: "GET STARTED",
-      image: "public/Fire-Fighting-Drone-768x576.jpeg", // Replace with the correct path for the image
+      image: "/Fire-Fighting-Drone-768x576.jpeg", // Replace with the correct path for the image
     },
     {
       title: "Kisan Drone",
       description: "Empowering agriculture with precision and productivity.",
       buttonText: "EXPLORE OPTIONS",
-      image: "public/kisan-drone-new-4.jpg", // Replace with the correct path for the image
+      image: "/kisan-drone-new-4.jpg", // Replace with the correct path for the image
     },
   ];
 
