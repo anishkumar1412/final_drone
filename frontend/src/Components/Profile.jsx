@@ -23,7 +23,7 @@ function Myprofile() {
             formData.append('villageName', userData.villageName);
             if (image) formData.append('image', image);
 
-            const { data } = await axios.post('http://localhost:5000/api/auth/update-profile', formData, {
+            const { data } = await axios.post(`${backendUrl}/api/auth/update-profile`, formData, {
                 headers: { Authorization:  `Bearer ${token}`},
             });
 
