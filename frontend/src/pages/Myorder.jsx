@@ -21,7 +21,14 @@ function Myorder() {
   const [selectedDrone, setSelectedDrone] = useState(null);
   const [cancellationReason, setCancellationReason] = useState("");
   const [customMessage, setCustomMessage] = useState("");
-  const {backendUrl} = useContext(AppContext)
+  const { backendUrl } = useContext(AppContext)
+
+
+  const [selectedItemId, setSelectedItemId] = useState(null);
+
+  const toggleDetails = (itemId) => {
+    setSelectedItemId(selectedItemId === itemId ? null : itemId);
+  };
 
   const handleInputChange = (taskId, field, value) => {
     setWorkData((prev) => ({
@@ -236,7 +243,7 @@ function Myorder() {
 
       alert(data.message);
       // Refresh data to update UI
-     
+
 
       // Success notification using SweetAlert
       Swal.fire({
@@ -289,7 +296,7 @@ function Myorder() {
       if (result.isConfirmed) {
         try {
           const { droneId, startDate, endDate } = selectedDrone;
-  
+
           const response = await axios.post(
             `${backendUrl}/api/booking/cancelBooking/${droneId}`,
             { startDate, endDate, cancellationReason, customMessage },
@@ -297,7 +304,7 @@ function Myorder() {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-  
+
           if (response.data.success) {
             toast.success("Booking cancelled");
             setOrders((prevOrders) =>
@@ -314,7 +321,7 @@ function Myorder() {
             error.response?.data || error.message
           );
         }
-  
+
         closeModal();
       }
     });
@@ -549,14 +556,14 @@ function Myorder() {
                                 <span className="ml-2 bg-red-100 text-red-600 px-2 py-0.5 rounded-md font-medium">
                                   {task.specificLandPrice && task.workProgress
                                     ? Math.max(
-                                        task.specificLandPrice -
-                                          task.workProgress.reduce(
-                                            (sum, work) =>
-                                              sum + Number(work.done),
-                                            0
-                                          ),
+                                      task.specificLandPrice -
+                                      task.workProgress.reduce(
+                                        (sum, work) =>
+                                          sum + Number(work.done),
                                         0
-                                      )
+                                      ),
+                                      0
+                                    )
                                     : task.specificLandPrice || 0}
                                   A
                                 </span>
@@ -567,9 +574,9 @@ function Myorder() {
                                 <span className="ml-2 bg-green-100 text-green-600 px-2 py-0.5 rounded-md font-medium">
                                   {task.specificLandPrice && task.workProgress
                                     ? task.workProgress.reduce(
-                                        (sum, work) => sum + Number(work.done),
-                                        0
-                                      )
+                                      (sum, work) => sum + Number(work.done),
+                                      0
+                                    )
                                     : task.specificLandPrice || 0}
                                   A
                                 </span>
@@ -580,13 +587,13 @@ function Myorder() {
                                 <span className="ml-2 bg-blue-100 text-blue-600 px-2 py-0.5 rounded-md font-medium">
                                   {task.specificLandPrice && task.workProgress
                                     ? Math.max(
-                                        task.workProgress.reduce(
-                                          (sum, work) =>
-                                            sum + Number(work.done),
-                                          0
-                                        ) - task.specificLandPrice,
+                                      task.workProgress.reduce(
+                                        (sum, work) =>
+                                          sum + Number(work.done),
                                         0
-                                      )
+                                      ) - task.specificLandPrice,
+                                      0
+                                    )
                                     : 0}
                                   A
                                 </span>
@@ -789,14 +796,14 @@ function Myorder() {
                                 <span className="ml-2 bg-red-100 text-red-600 px-2 py-0.5 rounded-md font-medium">
                                   {task.specificLandPrice && task.workProgress
                                     ? Math.max(
-                                        task.specificLandPrice -
-                                          task.workProgress.reduce(
-                                            (sum, work) =>
-                                              sum + Number(work.done),
-                                            0
-                                          ),
+                                      task.specificLandPrice -
+                                      task.workProgress.reduce(
+                                        (sum, work) =>
+                                          sum + Number(work.done),
                                         0
-                                      )
+                                      ),
+                                      0
+                                    )
                                     : task.specificLandPrice || 0}
                                   A
                                 </span>
@@ -807,9 +814,9 @@ function Myorder() {
                                 <span className="ml-2 bg-green-100 text-green-600 px-2 py-0.5 rounded-md font-medium">
                                   {task.specificLandPrice && task.workProgress
                                     ? task.workProgress.reduce(
-                                        (sum, work) => sum + Number(work.done),
-                                        0
-                                      )
+                                      (sum, work) => sum + Number(work.done),
+                                      0
+                                    )
                                     : task.specificLandPrice || 0}
                                   A
                                 </span>
@@ -820,13 +827,13 @@ function Myorder() {
                                 <span className="ml-2 bg-blue-100 text-blue-600 px-2 py-0.5 rounded-md font-medium">
                                   {task.specificLandPrice && task.workProgress
                                     ? Math.max(
-                                        task.workProgress.reduce(
-                                          (sum, work) =>
-                                            sum + Number(work.done),
-                                          0
-                                        ) - task.specificLandPrice,
+                                      task.workProgress.reduce(
+                                        (sum, work) =>
+                                          sum + Number(work.done),
                                         0
-                                      )
+                                      ) - task.specificLandPrice,
+                                      0
+                                    )
                                     : 0}
                                   A
                                 </span>
@@ -967,19 +974,123 @@ function Myorder() {
                           </div>
                         ) : item.workCompleted ? (
                           // Work Completed
-                          <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg shadow-md">
-                            <p className="font-semibold text-lg flex items-center gap-2">
-                              ✅ Work Done
-                            </p>
-                            <p className="mt-2 text-sm">
-                              <span className="font-medium">Pilot:</span>{" "}
-                              {item.pilotName}
-                            </p>
-                            <p className="text-sm">
-                              <span className="font-medium">Co-pilot:</span>{" "}
-                              {item.copilotName}
-                            </p>
-                          </div>
+                          <>
+
+                            <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg shadow-md">
+                              <p className="font-semibold text-lg flex items-center gap-2">✅ Work Done</p>
+                              <p className="mt-2 text-sm"><span className="font-medium">Pilot:</span> {item.pilotName}</p>
+                              <p className="text-sm"><span className="font-medium">Co-pilot:</span> {item.copilotName}</p>
+                            </div>
+
+
+                            <button className="bg-green-500 text-white px-2 py-1 rounded-md text-xs">
+                              Completed
+                            </button>
+                            <button
+                              className="bg-blue-500 text-white px-2 py-1 rounded-md text-xs ml-2"
+                              onClick={() => toggleDetails(item._id)}
+                            >
+                              Info
+                            </button>
+
+                            {selectedItemId === item._id && (
+                              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                                <div className="bg-white shadow-lg p-6 rounded-lg border w-80 max-w-md z-10">
+                                  <h3 className="font-semibold text-gray-800 text-lg">
+                                    Work Details
+                                  </h3>
+
+                                  <div className="text-sm text-gray-700 mt-2 space-y-2">
+                                    <p className="flex justify-between">
+                                      <span className="font-semibold">Pilot:</span>
+                                      <span>{item.pilotName || "N/A"}</span>
+                                    </p>
+                                    <p className="flex justify-between">
+                                      <span className="font-semibold">Co-Pilot:</span>
+                                      <span>{item.copilotName || "N/A"}</span>
+                                    </p>
+                                    <p className="flex justify-between">
+                                      <span className="font-semibold">Target:</span>
+                                      <span className="text-blue-600 font-semibold">
+                                        {Number(item.specificLandPrice) || 0}A
+                                      </span>
+                                    </p>
+                                    <p className="flex justify-between">
+                                      <span className="font-semibold">Completed State:</span>
+                                      <span
+                                        className={`font-semibold ${item.workCompleted ? "text-green-600" : "text-red-600"
+                                          }`}
+                                      >
+                                        {item.workCompleted ? "Completed" : "Pending"}
+                                      </span>
+                                    </p>
+                                  </div>
+
+                                  <hr className="my-2" />
+
+                                  {item.workProgress?.length > 0 ? (
+                                    <ul className="text-sm text-gray-700 mt-2 space-y-1">
+                                      {item.workProgress.map((work, index) => (
+                                        <li key={index} className="flex justify-between">
+                                          <span>{formatDate(work.date)}</span>
+                                          <span className="text-green-600 font-semibold">
+                                            {Number(work.done) || 0}A
+                                          </span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  ) : (
+                                    <p className="text-sm text-gray-500 mt-2">
+                                      No details available
+                                    </p>
+                                  )}
+
+                                  <hr className="my-2" />
+
+                                  {(() => {
+                                    const totalWorkDone =
+                                      item.workProgress?.reduce(
+                                        (acc, work) => acc + (Number(work.done) || 0),
+                                        0
+                                      ) || 0;
+                                    const target = Number(item.specificLandPrice) || 0;
+                                    const pendingWork = Math.max(target - totalWorkDone, 0);
+                                    const extraWork = totalWorkDone > target ? totalWorkDone - target : 0;
+
+                                    return (
+                                      <div className="text-sm text-gray-700 space-y-1">
+                                        <p className="flex justify-between">
+                                          <span className="font-semibold">Total Work Done:</span>
+                                          <span className="text-green-600 font-semibold">
+                                            {totalWorkDone}A
+                                          </span>
+                                        </p>
+                                        <p className="flex justify-between">
+                                          <span className="font-semibold">Pending:</span>
+                                          <span className="text-red-600 font-semibold">
+                                            {pendingWork}A
+                                          </span>
+                                        </p>
+                                        <p className="flex justify-between">
+                                          <span className="font-semibold">Extra Work:</span>
+                                          <span className="text-blue-600 font-semibold">
+                                            {extraWork}A
+                                          </span>
+                                        </p>
+                                      </div>
+                                    );
+                                  })()}
+
+                                  <button
+                                    className="bg-red-500 mt-3 py-2 px-4 text-white rounded-md w-full text-sm"
+                                    onClick={() => toggleDetails(item._id)}
+                                  >
+                                    Close
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </>
                         ) : item.orderConfirmed && !item.workProgress ? (
                           // Order Confirmed but Work Not Started
                           <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-md">
@@ -1018,14 +1129,14 @@ function Myorder() {
                                 <span className="font-medium">
                                   {item.specificLandPrice && item.workProgress
                                     ? Math.max(
-                                        item.specificLandPrice -
-                                          item.workProgress.reduce(
-                                            (sum, work) =>
-                                              sum + Number(work.done),
-                                            0
-                                          ),
+                                      item.specificLandPrice -
+                                      item.workProgress.reduce(
+                                        (sum, work) =>
+                                          sum + Number(work.done),
                                         0
-                                      )
+                                      ),
+                                      0
+                                    )
                                     : item.specificLandPrice || 0}
                                   A
                                 </span>
@@ -1036,9 +1147,9 @@ function Myorder() {
                                 <span className="font-medium">
                                   {item.specificLandPrice && item.workProgress
                                     ? item.workProgress.reduce(
-                                        (sum, work) => sum + Number(work.done),
-                                        0
-                                      )
+                                      (sum, work) => sum + Number(work.done),
+                                      0
+                                    )
                                     : item.specificLandPrice || 0}
                                   A
                                 </span>
@@ -1048,13 +1159,13 @@ function Myorder() {
                                 <span className="font-medium">
                                   {item.specificLandPrice && item.workProgress
                                     ? Math.max(
-                                        item.workProgress.reduce(
-                                          (sum, work) =>
-                                            sum + Number(work.done),
-                                          0
-                                        ) - item.specificLandPrice,
+                                      item.workProgress.reduce(
+                                        (sum, work) =>
+                                          sum + Number(work.done),
                                         0
-                                      )
+                                      ) - item.specificLandPrice,
+                                      0
+                                    )
                                     : 0}
                                   A
                                 </span>

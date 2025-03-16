@@ -13,7 +13,13 @@ function Appointment() {
 
   const [editRow, setEditRow] = useState(null);
   const [editCopilotRow, setEditCopilotRow] = useState(null); // Track which row is in edit mode
-  const {backendUrl} = useContext(AdminContext)
+  const { backendUrl } = useContext(AdminContext)
+
+  const [selectedItemId, setSelectedItemId] = useState(null);
+
+  const toggleDetails = (itemId) => {
+    setSelectedItemId(selectedItemId === itemId ? null : itemId);
+  };
 
   useEffect(() => {
     getAllBokings();
@@ -150,8 +156,8 @@ function Appointment() {
               <th className="py-3 px-4 text-left border-r">Pilot</th>
               <th className="py-3 px-4 text-left border-r">Co Pilot</th>
               <th className="py-3 px-4 text-left border-r">Assign</th>
-              <th className="py-3 px-4 text-left border-r">Progress</th>
               <th className="py-3 px-4 text-left border-r">Actions</th>
+              <th className="py-3 px-4 text-left border-r">Progress</th>
               <th className="py-3 px-4 text-left border-r">Payment</th>
             </tr>
           </thead>
@@ -339,89 +345,6 @@ function Appointment() {
                 </td>
 
 
-                <td className="py-3 px-4 border-r">
-                  {item.workCompleted ? (
-                    <button className="bg-green-500 py-1 px-2 text-white rounded-md text-xs">Completed</button>
-                  ) : (
-                    (() => {
-                      // Filter only verified work progress
-                      const verifiedWork = (item.workProgress ?? []).filter(work => work.farmerVerified);
-
-                      // Calculate total verified work done
-                      const totalVerifiedDone = verifiedWork.reduce((sum, work) => sum + Number(work.done), 0);
-
-                      return verifiedWork.length > 0 ? (
-                        <>
-                          <div className="space-y-1 text-sm">
-                            <p className="flex items-center gap-4 px-2">
-                              <span className="font-semibold text-gray-700">Target:</span>
-                              <span className="text-gray-900 bg-gray-200 px-2 py-1 rounded-md">{item.specificLandPrice}A</span>
-                            </p>
-
-                            <p className="flex items-center gap-4 px-2">
-                              <span className="font-semibold text-gray-700">Pending:</span>
-                              <span className="text-red-600 font-semibold bg-red-100 px-2 py-1 rounded-md">
-                                {Math.max(item.specificLandPrice - totalVerifiedDone, 0)}A
-                              </span>
-                            </p>
-
-                            <p className="flex items-center gap-4 px-2">
-                              <span className="font-semibold text-gray-700">Total:</span>
-                              <span className="text-green-600 font-semibold bg-green-100 px-2 py-1 rounded-md">
-                                {totalVerifiedDone}A
-                              </span>
-                            </p>
-
-                            <p className="flex items-center gap-4 px-2">
-                              <span className="font-semibold text-gray-700">Extra:</span>
-                              <span className="text-blue-600 font-semibold bg-blue-100 px-2 py-1 rounded-md">
-                                {Math.max(totalVerifiedDone - item.specificLandPrice, 0)}A
-                              </span>
-                            </p>
-
-
-                            {verifiedWork.length > 0 && (
-                              <div className="px-2 space-y-1">
-                                <span className="font-semibold text-gray-700">Done:</span>
-                                {verifiedWork.map((work, index) => (
-                                  <p key={index} className="flex items-center gap-4">
-                                    <span className="text-gray-600 text-xs">{formatDate(work.date)}</span>
-                                    <span className="text-green-600 font-semibold bg-green-100 px-2 py-1 rounded-md">{work.done}A</span>
-                                  </p>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="space-y-1 text-sm">
-                            <p className="flex items-center gap-4 px-2">
-                              <span className="font-semibold text-gray-700">Target:</span>
-                              <span className="text-gray-900 bg-gray-200 px-2 py-1 rounded-md">{item.specificLandPrice}A</span>
-                            </p>
-
-                            <p className="flex items-center gap-4 px-2">
-                              <span className="font-semibold text-gray-700">Pending:</span>
-                              <span className="text-red-600 font-semibold bg-red-100 px-2 py-1 rounded-md">{item.specificLandPrice}A</span>
-                            </p>
-
-                            <p className="flex items-center gap-4 px-2">
-                              <span className="font-semibold text-gray-700">Done:</span>
-                              <span className="text-red-600 font-semibold bg-red-100 px-2 py-1 rounded-md">0A</span>
-                            </p>
-                          </div>
-                        </>
-                      );
-                    })()
-                  )}
-                </td>
-
-
-
-
-
-
                 <td className="  py-3 px-4 border-r">
                   {
                     !item.cancelled ? <div className="flex flex-col items-center justify-center gap-4">
@@ -443,6 +366,211 @@ function Appointment() {
                       <button className="bg-red-700 text-white px-2 py-1 rounded-md ">Cancelled</button>
                   }
                 </td>
+
+
+                {/* Aciton of work */}
+
+                <td className="py-3 px-4 border-r relative">
+                  {item.workCompleted ? (
+                    <>
+
+
+                      <div className="flex">
+                        <button className="bg-green-500 text-white px-2 py-1 rounded-md text-xs">
+                          Completed
+                        </button>
+                        <button
+                          className="bg-blue-500 text-white px-2 py-1 rounded-md text-xs ml-2"
+                          onClick={() => toggleDetails(item._id)}
+                        >
+                          Info
+                        </button>
+                      </div>
+
+                      {selectedItemId === item._id && (
+                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                          <div className="bg-white shadow-lg p-6 rounded-lg border w-80 max-w-md z-10">
+                            <h3 className="font-semibold text-gray-800 text-lg">
+                              Work Details
+                            </h3>
+
+                            <div className="text-sm text-gray-700 mt-2 space-y-2">
+                              <p className="flex justify-between">
+                                <span className="font-semibold">Pilot:</span>
+                                <span>{item.pilotName || "N/A"}</span>
+                              </p>
+                              <p className="flex justify-between">
+                                <span className="font-semibold">Co-Pilot:</span>
+                                <span>{item.copilotName || "N/A"}</span>
+                              </p>
+                              <p className="flex justify-between">
+                                <span className="font-semibold">Target:</span>
+                                <span className="text-blue-600 font-semibold">
+                                  {Number(item.specificLandPrice) || 0}A
+                                </span>
+                              </p>
+                              <p className="flex justify-between">
+                                <span className="font-semibold">Completed State:</span>
+                                <span
+                                  className={`font-semibold ${item.workCompleted ? "text-green-600" : "text-red-600"
+                                    }`}
+                                >
+                                  {item.workCompleted ? "Completed" : "Pending"}
+                                </span>
+                              </p>
+                            </div>
+
+                            <hr className="my-2" />
+
+                            {item.workProgress?.length > 0 ? (
+                              <ul className="text-sm text-gray-700 mt-2 space-y-1">
+                                {item.workProgress.map((work, index) => (
+                                  <li key={index} className="flex justify-between">
+                                    <span>{formatDate(work.date)}</span>
+                                    <span className="text-green-600 font-semibold">
+                                      {Number(work.done) || 0}A
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-sm text-gray-500 mt-2">
+                                No details available
+                              </p>
+                            )}
+
+                            <hr className="my-2" />
+
+                            {(() => {
+                              const totalWorkDone =
+                                item.workProgress?.reduce(
+                                  (acc, work) => acc + (Number(work.done) || 0),
+                                  0
+                                ) || 0;
+                              const target = Number(item.specificLandPrice) || 0;
+                              const pendingWork = Math.max(target - totalWorkDone, 0);
+                              const extraWork = totalWorkDone > target ? totalWorkDone - target : 0;
+
+                              return (
+                                <div className="text-sm text-gray-700 space-y-1">
+                                  <p className="flex justify-between">
+                                    <span className="font-semibold">Total Work Done:</span>
+                                    <span className="text-green-600 font-semibold">
+                                      {totalWorkDone}A
+                                    </span>
+                                  </p>
+                                  <p className="flex justify-between">
+                                    <span className="font-semibold">Pending:</span>
+                                    <span className="text-red-600 font-semibold">
+                                      {pendingWork}A
+                                    </span>
+                                  </p>
+                                  <p className="flex justify-between">
+                                    <span className="font-semibold">Extra Work:</span>
+                                    <span className="text-blue-600 font-semibold">
+                                      {extraWork}A
+                                    </span>
+                                  </p>
+                                </div>
+                              );
+                            })()}
+
+                            <button
+                              className="bg-red-500 mt-3 py-2 px-4 text-white rounded-md w-full text-sm"
+                              onClick={() => toggleDetails(item._id)}
+                            >
+                              Close
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    (() => {
+                      const verifiedWork = (item.workProgress ?? []).filter(
+                        (work) => work.farmerVerified
+                      );
+                      const totalVerifiedDone = verifiedWork.reduce(
+                        (sum, work) => sum + Number(work.done),
+                        0
+                      );
+
+                      return verifiedWork.length > 0 ? (
+                        <div className="space-y-1 text-sm">
+                          <p className="flex items-center gap-4 px-2">
+                            <span className="font-semibold text-gray-700">Target:</span>
+                            <span className="text-gray-900 bg-gray-200 px-2 py-1 rounded-md">
+                              {item.specificLandPrice}A
+                            </span>
+                          </p>
+
+                          <p className="flex items-center gap-4 px-2">
+                            <span className="font-semibold text-gray-700">Pending:</span>
+                            <span className="text-red-600 font-semibold bg-red-100 px-2 py-1 rounded-md">
+                              {Math.max(item.specificLandPrice - totalVerifiedDone, 0)}A
+                            </span>
+                          </p>
+
+                          <p className="flex items-center gap-4 px-2">
+                            <span className="font-semibold text-gray-700">Extra:</span>
+                            <span className="text-blue-600 font-semibold bg-blue-100 px-2 py-1 rounded-md">
+                              {Math.max(totalVerifiedDone - item.specificLandPrice, 0)}A
+                            </span>
+                          </p>
+
+                          <p className="flex items-center gap-4 px-2">
+                            <span className="font-semibold text-gray-700">Total:</span>
+                            <span className="text-green-600 font-semibold bg-green-100 px-2 py-1 rounded-md">
+                              {totalVerifiedDone}A
+                            </span>
+                          </p>
+
+
+
+                          {verifiedWork.length > 0 && (
+                            <div className="px-2 space-y-1">
+                              <span className="font-semibold text-gray-700">Done:</span>
+                              {verifiedWork.map((work, index) => (
+                                <p key={index} className="flex items-center gap-4">
+                                  <span className="text-gray-600 text-xs">
+                                    {formatDate(work.date)}
+                                  </span>
+                                  <span className="text-green-600 font-semibold bg-green-100 px-2 py-1 rounded-md">
+                                    {work.done}A
+                                  </span>
+                                </p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-1 text-sm">
+                          <p className="flex items-center gap-4 px-2">
+                            <span className="font-semibold text-gray-700">Target:</span>
+                            <span className="text-gray-900 bg-gray-200 px-2 py-1 rounded-md">
+                              {item.specificLandPrice}A
+                            </span>
+                          </p>
+
+                          <p className="flex items-center gap-4 px-2">
+                            <span className="font-semibold text-gray-700">Pending:</span>
+                            <span className="text-red-600 font-semibold bg-red-100 px-2 py-1 rounded-md">
+                              {item.specificLandPrice}A
+                            </span>
+                          </p>
+
+                          <p className="flex items-center gap-4 px-2">
+                            <span className="font-semibold text-gray-700">Done:</span>
+                            <span className="text-red-600 font-semibold bg-red-100 px-2 py-1 rounded-md">
+                              0A
+                            </span>
+                          </p>
+                        </div>
+                      );
+                    })()
+                  )}
+                </td>
+
 
                 <td className=" py-3 px-4" >Pending</td>
               </tr>
