@@ -24,7 +24,7 @@ const AdminContextProvider = (props) => {
     const [crops, setCrops] = useState(null)
 
 
-    const {backendUrl} = import.meta.env.VITE_BACKEND_URL
+    const backendUrl = import.meta.env.VITE_BACKEND_URL
 
     const [drones, setDrones] = useState([])
     useEffect(() => {
