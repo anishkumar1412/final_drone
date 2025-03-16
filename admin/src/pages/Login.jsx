@@ -32,7 +32,7 @@ function Login() {
            }
         }else {
 
-          const {data}= await axios.post(backendUrl+'/api/admin/admins-login',{email,password})
+          const {data}= await axios.post(`${backendUrl}/api/admin/admins-login`,{email,password})
           if(data.success){
             console.log("admin successfully login")
            localStorage.setItem('dToken',data.token)
