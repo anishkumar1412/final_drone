@@ -24,7 +24,6 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
   const [isNavbarScrolled, setIsNavbarScrolled] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
-
   useEffect(() => {
     const handleScroll = () => setIsNavbarScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
@@ -43,13 +42,15 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
 
   const handleLogout = () => {
     setToken(null);
+    localStorage.removeItem("token"); // Ensure token is removed from storage
     setIsProfileMenuOpen(false);
   };
 
   return (
     <header
-      className={`shadow-md fixed w-full transition-all duration-300 z-50 ${isNavbarScrolled ? "bg-gray-800 shadow-lg" : bgColor
-        }`}
+      className={`shadow-md fixed w-full transition-all duration-300 z-50 ${
+        isNavbarScrolled ? "bg-gray-800 shadow-lg" : bgColor
+      }`}
     >
       <nav className="max-w-screen-xl mx-auto px-4 sm:px-6 flex justify-between items-center py-4">
         {/* Logo */}
@@ -83,9 +84,10 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `px-3 py-2 rounded-md text-sm font-medium transition-all ${isActive
-                      ? "text-blue-400 border-b-2 border-blue-400"
-                      : "text-white hover:text-gray-300"
+                    `px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                      isActive
+                        ? "text-blue-400 border-b-2 border-blue-400"
+                        : "text-white hover:text-gray-300"
                     }`
                   }
                   onClick={handleLinkClick}
@@ -95,7 +97,9 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
               </li>
             )
           )}
-          {token && (
+
+          {/* Profile Dropdown or SignUp/Login */}
+          {token ? (
             <li className="relative">
               <button
                 onClick={handleProfileClick}
@@ -123,13 +127,15 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
                       My Order
                     </NavLink>
                   </li>
-                  <NavLink
+                  <li>
+                    <NavLink
                       to="/refund-reviews-status"
                       className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
                       onClick={handleLinkClick}
                     >
                       Refund & Reviews Status
                     </NavLink>
+                  </li>
                   <li>
                     <button
                       onClick={handleLogout}
@@ -141,8 +147,7 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
                 </ul>
               )}
             </li>
-          )}
-          {!token && (
+          ) : (
             <li>
               <NavLink
                 to="/login"
@@ -181,92 +186,6 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
           </button>
         </div>
       </nav>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-90 flex flex-col items-center justify-center">
-          <button
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="absolute top-4 right-4 text-white text-2xl focus:outline-none"
-          >
-            &times;
-          </button>
-          <ul className="space-y-4 text-center">
-            {menuItems.map((item) =>
-              item.name === "Product" ? (
-                <li key={item.name}>
-                  <a
-                    href={item.path}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={handleLinkClick}
-                    className="text-white hover:text-gray-300 text-lg font-medium"
-                  >
-                    {item.name}
-                  </a>
-                </li>
-              ) : (
-                <li key={item.name}>
-                  <NavLink
-                    to={item.path}
-                    onClick={handleLinkClick}
-                    className={({ isActive }) =>
-                      `text-lg font-medium transition-all ${isActive
-                        ? "text-blue-400 border-b-2 border-blue-400"
-                        : "text-white hover:text-gray-300"
-                      }`
-                    }
-                  >
-                    {item.name}
-                  </NavLink>
-                </li>
-              )
-            )}
-            {token && (
-              <>
-                <li>
-                  <NavLink
-                    to="/profile"
-                    onClick={handleLinkClick}
-                    className="text-lg font-medium text-white hover:text-gray-300"
-                  >
-                    View Profile
-                  </NavLink>
-                  </li>
-                  <li>
-                  <NavLink
-                    to="/my-order"
-                    onClick={handleLinkClick}
-                    className="text-lg font-medium text-white hover:text-gray-300"
-                  >
-                   My order
-                  </NavLink>
-
-                </li>
-                <li>
-                  <button
-                    onClick={handleLogout}
-                    className="text-lg font-medium text-white hover:text-gray-300"
-                  >
-                    Logout
-                  </button>
-                </li>
-              </>
-            )}
-            {!token && (
-              <li>
-                <NavLink
-                  to="/login"
-                  onClick={handleLinkClick}
-                  className="text-lg font-medium text-white hover:text-gray-300"
-                >
-                  SignUp/Login
-                </NavLink>
-              </li>
-            )}
-          </ul>
-        </div>
-      )}
     </header>
   );
 };

@@ -1,5 +1,7 @@
 import React from "react";
 import { FaSignInAlt, FaClipboardCheck, FaRegClock, FaUserTie } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
 
 const steps = [
   {
@@ -28,8 +30,12 @@ const steps = [
     description: "Contact our advisor for expert guidance and support.",
   },
 ];
-
 const BookingVideo = () => {
+  const navigate = useNavigate();
+  const Reload = ()=>{
+  navigate('/booking')
+  window.scrollTo(0,0);
+  }
   return (
     <section className="flex flex-col lg:flex-row items-center justify-center px-6 py-12 mt-12 space-y-8 lg:space-y-0 lg:space-x-8 bg-gray-100">
       {/* Video Section */}
@@ -75,7 +81,7 @@ const BookingVideo = () => {
 
         {/* Call-to-Action Button */}
         <div className="text-center">
-          <button
+          <button onClick={Reload}
             className="px-6 py-3 text-white font-semibold bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition duration-300"
           >
             Book Your Drone Now

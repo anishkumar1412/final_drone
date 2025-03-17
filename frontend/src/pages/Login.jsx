@@ -14,7 +14,7 @@ function Login() {
 
 
 
-  const { setUser, user } = useContext(AppContext)
+  const { setUser,setToken } = useContext(AppContext)
 
   const [isRegistering, setIsRegistering] = useState(true);
   const [formData, setFormData] = useState({
@@ -51,12 +51,23 @@ function Login() {
 
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
-        setUser(response.data.user);  // Update user state here
+        setToken(response.data.token); // Ensure context updates
+  setUser(response.data.user);   // Update user state
+  navigate('/');       
+        // console.log(response.data.user + "and the name of the function of the name")
+        // setUser(response.data.user);
 
-        console.log("User after setUser:", response.data.user); // To verify it's being set properly
+        // console.log("name is the commona dfjsadfijhasiodf",response.data.user)
+        
+        // // Update user state here
 
-        toast.success(isRegistering ? "Registration successful" : "Login successful");
-        navigate('/');
+        // console.log("User after setUser:", response.data.user); // To verify it's being set properly
+
+        // // toast.success(isRegistering ? "Registration successful" : "Login successful");
+        
+        // navigate('/');
+        // window.location.reload()
+        
       } else {
         toast.error(response.data.msg);
       }

@@ -6,7 +6,7 @@ export const AppContext = createContext()
 
 const AppContextProvider = (props) => {
 
-    const [token, setToken] = useState(localStorage.getItem('token') ? localStorage.getItem('token') : true)
+    const [token, setToken] = useState(false)
     const [startDate,setStartDate] = useState(null)
     const [endDate,setEndDate] = useState(null)
     const [user,setUser] = useState(null)
@@ -15,6 +15,9 @@ const AppContextProvider = (props) => {
     const [userData, setUserData] = useState(false)
     const [refunds,setRefunds] = useState([])
     const backendUrl = import.meta.env.VITE_BACKEND_URL
+    useEffect(()=>{
+        setToken(localStorage.getItem('token') ? localStorage.getItem('token') : false)
+    },[])
 
  
     useEffect(() => {
@@ -107,7 +110,12 @@ const AppContextProvider = (props) => {
             if(data.success)
             {
                 setUserData(data.user);
+                setUser(data.user);
             }
+
+
+
+        
             else{
                 toast.error(data.error);
             }
