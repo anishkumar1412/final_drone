@@ -12,11 +12,6 @@ function Myorder() {
   const { token, formatDate, userData } = useContext(AppContext);
   const [pilotTask, setPilotTask] = useState([]);
   const [copilotTask, setCopilotTask] = useState([]);
-  const [target, setTarget] = useState(0);
-  const [done, setDone] = useState(0);
-  const [pending, setPending] = useState(0);
-  const [date, setDate] = useState("");
-  const [workData, setWorkData] = useState({});
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedDrone, setSelectedDrone] = useState(null);
   const [cancellationReason, setCancellationReason] = useState("");
@@ -220,7 +215,7 @@ function Myorder() {
       );
 
       if (response.data.success) {
-        setOrders(response.data.bookings);
+        setOrders(response.data.bookings.reverse());
       }
     } catch (error) {
       console.error(
@@ -501,7 +496,7 @@ function Myorder() {
                     </tr>
                   </thead>
                   <tbody>
-                    {pilotTask.map((task, index) => (
+                    {pilotTask.reverse().map((task, index) => (
                       <tr key={task._id} className="text-center border-b">
                         <td className="border px-4 py-2">{index + 1}</td>
                         <td className="border px-4 py-2">
@@ -1272,6 +1267,7 @@ function Myorder() {
                     </td>
                   </tr>
                 ))}
+                
               </tbody>
             </table>
           </div>

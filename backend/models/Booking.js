@@ -33,9 +33,8 @@ const bookingSchema = new mongoose.Schema({
   workProgress: { type: Object, default: {} },
 
   cancellationReason: { type: String, default: null }, // Reason for cancellation
-  customMessage: { type: String, default: null } 
-  
-});
+  customMessage: { type: String, default: null } ,
+},{ timestamps: true });
 
 const Booking = mongoose.model("Booking", bookingSchema);
 

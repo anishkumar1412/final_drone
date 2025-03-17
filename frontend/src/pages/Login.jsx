@@ -14,7 +14,7 @@ function Login() {
 
 
 
-  const { setUser, user } = useContext(AppContext)
+  const { setUser, setToken } = useContext(AppContext)
 
   const [isRegistering, setIsRegistering] = useState(true);
   const [formData, setFormData] = useState({
@@ -51,11 +51,13 @@ function Login() {
 
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
+        setToken(response.data.token)
         setUser(response.data.user);  // Update user state here
 
         console.log("User after setUser:", response.data.user); // To verify it's being set properly
 
         toast.success(isRegistering ? "Registration successful" : "Login successful");
+
         navigate('/');
       } else {
         toast.error(response.data.msg);
