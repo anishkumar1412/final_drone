@@ -53,6 +53,7 @@ const registerUser = async (req, res) => {
 // Login a user
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
+  console.log(email)
 
   try {
     let user = await User.findOne({ email });
@@ -75,7 +76,10 @@ const loginUser = async (req, res) => {
 
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "30d" }, (err, token) => {
       if (err) throw err;
-      res.json({ token, user });
+
+      console.log(user)
+      console.log("This is the token which is coming from the backend", token)
+      res.json({success:true,message:"hiii", token, user });
     });
   } catch (err) {
     console.error(err.message);

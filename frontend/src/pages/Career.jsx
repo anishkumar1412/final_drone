@@ -85,7 +85,7 @@ const CareersPage = () => {
       </header>
       {/* Available Jobs */}
       <section id="jobs" className="py-16 px-8">
-        <h2 className="text-center text-3xl font-bold mb-8 text-gray-800">
+        <h2 className="text-center text-3xl font-bold mb-14 text-gray-800">
           Available Positions
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -115,7 +115,7 @@ const CareersPage = () => {
       </section>
 
       <section className="py-16 px-8 bg-gray-50">
-        <h2 className="text-center text-3xl font-bold mb-8 text-gray-800">
+        <h2 className="text-center text-3xl font-bold mb-16 text-gray-800">
           Why Join AgroDrone?
         </h2>
         <div className="flex flex-wrap justify-center gap-12">

@@ -7,9 +7,10 @@ import { MdReviews } from "react-icons/md";
 import { MdOutlinePendingActions } from "react-icons/md";
 import { GrInProgress } from "react-icons/gr";
 import { MdUpcoming } from "react-icons/md";
+import Refund from "./Refund";
 
 function Dashboard() {
-  const {bookings,getAllBokings,formatDate,currency,reviews,cancelledOrdersCount,cancelAppointment,drones} = useContext(AdminContext)
+  const {bookings,getAllBokings,formatDate,currency,reviews,cancelledOrdersCount,cancelAppointment,drones,upcomingBookings,refunds} = useContext(AdminContext)
 
    useEffect(()=>{
       getAllBokings()
@@ -17,24 +18,24 @@ function Dashboard() {
   console.log(bookings)
   const stats = [
     { icon: <FaShoppingCart className="text-blue-500" size={32} />, value: drones.length, label: "Total Drones", link: "/doctor-list" },
-    { icon: <FaShoppingCart className="text-green-500" size={32} />, value: 11, label: "Total Bookings", link: "/all-appointments" },
+    { icon: <FaShoppingCart className="text-green-500" size={32} />, value:bookings.length, label: "Total Bookings", link: "/all-appointments" },
     { icon: <FaShoppingCart className="text-yellow-500" size={32} />, value: bookings.length, label: "Order Completed", link: "/all-appointments" },
-    { icon: <FaSyncAlt className="text-red-500" size={32} />, value: "10", label: "Total Refund Orders", link: "/tickets/refund" },
-    { icon: <MdOutlinePendingActions  className="text-yellow-900" size={32} />, value: reviews.length, label: "Approved Refunds", link: "/approved-refunds" },
+    { icon: <FaSyncAlt className="text-red-500" size={32} />, value:refunds.length , label: "Total Refund Orders", link: "/tickets/refund" },
+    { icon: <MdOutlinePendingActions  className="text-yellow-900" size={32} />, value: refunds.filter((refund) => refund.status === "Approved").length, label: "Approved Refunds", link: "/approved-refunds" },
     { icon: <FaUserTimes className="text-purple-500" size={32} />, value: cancelledOrdersCount, label: "Total User Cancel Orders", link: "/cancelled-orders" },
     { icon: <MdReviews className="text-red-600" size={32} />, value: reviews.length, label: "Reviews", link: "/tickets/review" },
-    { icon: <MdUpcoming  className="text-purple-500" size={32} />, value: reviews.length, label: "Upcoming Bookings", link: "/upcoming-orders" },
-    { icon: <GrInProgress className="text-blue-950" size={32} />, value: reviews.length, label: "Orders in progress", link: "/orders-in-progress" },
-    { icon: <MdOutlinePendingActions  className="text-yellow-900" size={32} />, value: reviews.length, label: "Pending Orders", link: "/tickets/review" },
-    { icon: <MdOutlinePendingActions  className="text-yellow-900" size={32} />, value: reviews.length, label: "Order Details", link: "/tickets/review" },
+    { icon: <MdUpcoming  className="text-purple-500" size={32} />, value: upcomingBookings.length, label: "Upcoming Bookings", link: "/upcoming-orders" },
+    { icon: <GrInProgress className="text-blue-950" size={32} />, value: bookings.length, label: "Orders in progress", link: "/orders-in-progress" },
+    { icon: <MdOutlinePendingActions  className="text-yellow-900" size={32} />, value: bookings.length, label: "Pending Orders", link: "/tickets/review" },
+    { icon: <MdOutlinePendingActions  className="text-yellow-900" size={32} />, value: bookings.length, label: "Order Details", link: "/tickets/review" },
   ];
   
 
   return (
     <>
-    <div className="m-5">
+    <div className="m-5 w-full">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 grid-rows-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 grid-rows-2">
   {stats.map((stat, index) => (
     <Link to={stat.link} key={index} className="cursor-pointer">
       <div className="flex items-center gap-4 bg-white p-5 rounded-xl shadow-md border-2 border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all">
@@ -51,7 +52,7 @@ function Dashboard() {
 
       {/* Latest Bookings Section */}
    
-       <div className='w-full max-w-6xl m-5'>
+       <div className='w-full  m-5'>
            <p className='mb-3 text-lg font-medium'>Latest Bookings</p>
      
            <div className='bg-white border rounded text-sm min-h-[60vh] max-h-[80vh] overflow-y-scroll' >
