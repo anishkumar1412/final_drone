@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AppContext } from "../Context/AppContext";
 import axios from "axios";
@@ -21,6 +21,8 @@ const BookProduct = () => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [cropPrice, setCropPrice] = useState(0)
   const {backendUrl} = useContext(AppContext)
+
+  const navigate = useNavigate()
  
 
 
@@ -106,6 +108,7 @@ const BookProduct = () => {
 
       if (response.data.success) {
         toast.success("Booking successful!");
+        navigate('/my-order')
       } else {
         toast.error(response.data.message || "Booking failed.");
       }
@@ -130,48 +133,44 @@ const BookProduct = () => {
 
   };
 
-  // Handle start date change and calculate the end date based on working days
-  // const handleStartDateChange = (date) => {
-  //   setIsCalendarOpen(false)
-  //   setStartDate(date);
-  //   if (workingDays > 0) {
-  //     const calculatedEndDate = addDays(date, workingDays - 1); // Add working days to start date
-  //     setEndDate(calculatedEndDate); // Set the end date automatically
-  //   }
-  // };
-
+  
 
   const handleStartDateChange = (date) => {
     setIsCalendarOpen(false);
     setStartDate(date);
   
     if (workingDays > 0) {
-      if (workingDays === 1) {
-        setEndDate(date);
-        return;
-      }
-  
-      let calculatedEndDate = date;
+      let calculatedEndDate = new Date(date);
       let daysAdded = 0;
+      let hasBookedDate = false; // Flag to track if any booked date exists in range
   
       while (daysAdded < workingDays) {
+        // Move to the next day
         calculatedEndDate = addDays(calculatedEndDate, 1);
   
-        // Check if the date is booked
+        // Check if the calculatedEndDate is within any booked range
         const isBooked = drone.bookings.some((booking) => {
-          const start = new Date(booking.startDate);
-          const end = new Date(booking.endDate);
-          return calculatedEndDate >= start && calculatedEndDate <= end;
+          const bookingStart = new Date(booking.startDate);
+          const bookingEnd = new Date(booking.endDate);
+          return calculatedEndDate >= bookingStart && calculatedEndDate <= bookingEnd;
         });
   
-        if (!isBooked) {
-          daysAdded++;
+        if (isBooked) {
+          hasBookedDate = true;
+        } else {
+          daysAdded++; // Only count non-booked dates
         }
+      }
+  
+      // If no booked dates were encountered, reduce the end date by 1 day
+      if (!hasBookedDate) {
+        calculatedEndDate = addDays(calculatedEndDate, -1);
       }
   
       setEndDate(calculatedEndDate);
     }
   };
+  
   
   
 
@@ -418,8 +417,9 @@ const BookProduct = () => {
             <hr />
             <li className="flex justify-between">
               <span className="font-semibold text-gray-700 text-lg">Specific Land (per acre):</span>
-              <span className="text-lg text-gray-900">₹{specificLandPrice || 0}</span>
+              <span className="text-lg text-gray-900">{specificLandPrice || 0}</span>
             </li>
+           
             <hr />
             <li className="flex justify-between">
               <span className="font-semibold text-gray-700 text-lg">Subtotal:</span>

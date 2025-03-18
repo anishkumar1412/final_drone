@@ -123,6 +123,11 @@ const getUserBookings = async (req, res) => {
 
     const bookings = await Booking.find({ "user._id": new mongoose.Types.ObjectId(userId) }).sort({ createdAt: -1 });
 
+  
+
+     console.log(bookings.map(b => ({ id: b._id, createdAt: b.createdAt })));
+
+
     if (!bookings.length) {
       return res.status(404).json({ success: false, message: "No bookings found for this user." });
     }
@@ -132,6 +137,7 @@ const getUserBookings = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
+
 const getUserBookingById = async (req, res) => {
   try {
     const { orderId } = req.params;
