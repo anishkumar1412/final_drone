@@ -50,8 +50,8 @@ function App() {
         <Sidebar/>
         <Routes>
            {/* Admin Route  */}
-           <Route path='/' element={<></>} />
-           <Route path='/admin-dashboard' element={<Dashboard/>} />
+          
+           <Route path='/' element={<Dashboard/>} />
            <Route path='/all-appointments' element={<Appointment/>} />
            <Route path='/add-doctor' element={<AddDoctor/>} />
            <Route path='/add-crop' element={<AddCrop/>} />
