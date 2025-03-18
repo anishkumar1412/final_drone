@@ -61,6 +61,7 @@ function Login() {
 
         toast.success(isRegistering ? "Registration successful" : "Login successful");
         navigate('/');
+        window.location.reload()
       } else {
         toast.error(response.data.msg);
       }

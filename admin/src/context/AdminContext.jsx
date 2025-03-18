@@ -327,7 +327,7 @@ const AdminContextProvider = (props) => {
 
                     // Make sure token is available and then pass it in the headers
                     const response = await axios.post(
-                         `${backendUrl}/api/booking/cancelBooking/${id}`,
+                        `${backendUrl}/api/admin/cancelBooking/${id}`,
                         { startDate, endDate }, // Empty body if not needed
                         {
                             headers: { Authorization: `Bearer ${aToken}` }, // Pass the headers in the correct place
