@@ -179,7 +179,7 @@ function Appointment() {
 
                 {/* pilot field  */}
 
-                <td className="py-3 px-4 border-r">
+                {/* <td className="py-3 px-4 border-r">
                   {editRow === item._id || !item.pilotName ? ( // Check if in edit mode or new booking
                     <div className="flex flex-col items-start">
                       <select
@@ -249,13 +249,93 @@ function Appointment() {
                       </div>
                     </div>
                   )}
+                </td> */}
+
+                <td className="py-3 px-4 border-r">
+                  {item.cancelled ? ( // Check if booking is cancelled
+                    <div className="p-3 bg-gray-100 rounded-md shadow-md">
+                      <span className="bg-red-500 text-white px-3 py-1 rounded-md text-sm">
+                        Cancelled
+                      </span>
+                    </div>
+                  ) : editRow === item._id || !item.pilotName ? ( // Check if in edit mode or new booking
+                    <div className="flex flex-col items-start">
+                      <select
+                        className="border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        value={selectedPilots[item._id] || ""}
+                        onChange={(e) =>
+                          setSelectedPilots((prev) => ({ ...prev, [item._id]: e.target.value }))
+                        }
+                      >
+                        <option value="">Pilot</option>
+                        {pilots.map((pilot) => (
+                          <option key={pilot._id} value={pilot._id}>
+                            {pilot.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        className="bg-green-500 text-white text-xs p-1 rounded-sm mt-2"
+                        onClick={() => {
+                          handleEditPilot(item._id);
+                        }}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative p-3 bg-gray-100 rounded-md shadow-md">
+                      <p className="text-gray-700 font-medium">
+                        Assigned to <br /> <span className="font-semibold">{item.pilotName}</span>
+                      </p>
+
+                      <div className="flex items-center gap-2 mt-2">
+                        {item.pilotConfirm ? (
+                          <>
+                            <span className="bg-green-500 text-white px-3 py-1 rounded-md text-sm">
+                              Confirmed
+                            </span>
+                            <button
+                              className="bg-gray-600 text-white text-xs px-2 py-1 rounded-md hover:bg-gray-700 ml-2"
+                              onClick={() => setEditRow(item._id)}
+                            >
+                              Edit
+                            </button>
+                          </>
+                        ) : item.pilotCancelled ? (
+                          <>
+                            <span className="bg-red-500 text-white px-3 py-1 rounded-md text-sm">
+                              Cancelled
+                            </span>
+                            <button
+                              className="bg-gray-600 text-white text-xs px-2 py-1 rounded-md hover:bg-gray-700 ml-2"
+                              onClick={() => setEditRow(item._id)}
+                            >
+                              Edit
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-yellow-600 font-medium">Waiting for Confirmation</span>
+                            <button
+                              className="absolute top-2 right-2 bg-gray-600 text-white text-xs px-2 py-1 rounded-md hover:bg-gray-700"
+                              onClick={() => setEditRow(item._id)}
+                            >
+                              Edit
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </td>
+
 
 
 
                 {/* Copilot field  */}
 
-                <td className="py-3 px-4 border-r">
+                {/* <td className="py-3 px-4 border-r">
                   {editCopilotRow === item._id || !item.copilotName ? ( // Check if in edit mode or new booking
                     <div className="flex flex-col items-start">
                       <select
@@ -326,7 +406,87 @@ function Appointment() {
                       </div>
                     </div>
                   )}
+                </td> */}
+
+                <td className="py-3 px-4 border-r">
+                  {item.cancelled ? ( // Check if booking is cancelled
+                    <div className="p-3 bg-gray-100 rounded-md shadow-md">
+                      <span className="bg-red-500 text-white px-3 py-1 rounded-md text-sm">
+                       Cancelled
+                      </span>
+                    </div>
+                  ) : editCopilotRow === item._id || !item.copilotName ? ( // Check if in edit mode or new booking
+                    <div className="flex flex-col items-start">
+                      <select
+                        className="border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        value={selectedCopilots[item._id] || ""}
+                        onChange={(e) =>
+                          setSelectedCopilots((prev) => ({ ...prev, [item._id]: e.target.value }))
+                        }
+                      >
+                        <option value="">Copilot</option>
+                        {copilots.map((copilot) => (
+                          <option key={copilot._id} value={copilot._id}>
+                            {copilot.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        className="bg-green-500 text-white text-xs p-1 rounded-sm mt-2"
+                        onClick={() => {
+                          handleEditcoPilot(item._id);
+                        }}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative p-3 bg-gray-100 rounded-md shadow-md">
+                      <p className="text-gray-700 font-medium">
+                        Assigned to <br /> <span className="font-semibold">{item.copilotName}</span>
+                      </p>
+
+                      <div className="flex items-center gap-2 mt-2">
+                        {item.copilotConfirm ? (
+                          <>
+                            <span className="bg-green-500 text-white px-3 py-1 rounded-md text-sm">
+                              Confirmed
+                            </span>
+                            <button
+                              className="bg-gray-600 text-white text-xs px-2 py-1 rounded-md hover:bg-gray-700 ml-2"
+                              onClick={() => setEditCopilotRow(item._id)}
+                            >
+                              Edit
+                            </button>
+                          </>
+                        ) : item.copilotCancelled ? (
+                          <>
+                            <span className="bg-red-500 text-white px-3 py-1 rounded-md text-sm">
+                              Cancelled
+                            </span>
+                            <button
+                              className="bg-gray-600 text-white text-xs px-2 py-1 rounded-md hover:bg-gray-700 ml-2"
+                              onClick={() => setEditCopilotRow(item._id)}
+                            >
+                              Edit
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-yellow-600 font-medium">Waiting for Confirmation</span>
+                            <button
+                              className="absolute top-2 right-2 bg-gray-600 text-white text-xs px-2 py-1 rounded-md hover:bg-gray-700"
+                              onClick={() => setEditCopilotRow(item._id)}
+                            >
+                              Edit
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </td>
+
 
 
                 <td className="py-3 px-4 border-r">

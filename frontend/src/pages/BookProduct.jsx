@@ -417,8 +417,9 @@ const BookProduct = () => {
             <hr />
             <li className="flex justify-between">
               <span className="font-semibold text-gray-700 text-lg">Specific Land (per acre):</span>
-              <span className="text-lg text-gray-900">₹{specificLandPrice || 0}</span>
+              <span className="text-lg text-gray-900">{specificLandPrice || 0}</span>
             </li>
+           
             <hr />
             <li className="flex justify-between">
               <span className="font-semibold text-gray-700 text-lg">Subtotal:</span>

@@ -263,8 +263,11 @@ function Myorder() {
   useEffect(() => {
     getBooking();
   }, [token]);
+
+
   const openModal = (drone) => {
     setSelectedDrone(drone);
+    // console.log("Drone data is ", drone)
     setModalIsOpen(true);
   };
 
@@ -290,6 +293,7 @@ function Myorder() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
+          console.log(selectedDrone)
           const { droneId, startDate, endDate } = selectedDrone;
 
           const response = await axios.post(
@@ -309,6 +313,7 @@ function Myorder() {
                   : order
               )
             );
+            window.location.reload()
           }
         } catch (error) {
           console.error(
