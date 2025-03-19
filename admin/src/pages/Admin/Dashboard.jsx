@@ -11,6 +11,7 @@ import Refund from "./Refund";
 
 function Dashboard() {
   const {bookings,getAllBokings,formatDate,currency,reviews,cancelledOrdersCount,cancelAppointment,drones,upcomingBookings,refunds} = useContext(AdminContext)
+  const today = new Date().toISOString().split('T')[0];
 
    useEffect(()=>{
       getAllBokings()
@@ -22,12 +23,14 @@ function Dashboard() {
     { icon: <FaShoppingCart className="text-yellow-500" size={32} />, value: bookings.length, label: "Order Completed", link: "/all-appointments" },
     { icon: <FaSyncAlt className="text-red-500" size={32} />, value:refunds.length , label: "Total Refund Orders", link: "/tickets/refund" },
     { icon: <MdOutlinePendingActions  className="text-yellow-900" size={32} />, value: refunds.filter((refund) => refund.status === "Approved").length, label: "Approved Refunds", link: "/approved-refunds" },
+    { icon: <MdOutlinePendingActions  className="text-yellow-900" size={32} />, value: refunds.filter((refund) => refund.status === "Declined").length, label: "Declined Refunds", link: "/declined-refunds" },
     { icon: <FaUserTimes className="text-purple-500" size={32} />, value: cancelledOrdersCount, label: "Total User Cancel Orders", link: "/cancelled-orders" },
     { icon: <MdReviews className="text-red-600" size={32} />, value: reviews.length, label: "Reviews", link: "/tickets/review" },
     { icon: <MdUpcoming  className="text-purple-500" size={32} />, value: upcomingBookings.length, label: "Upcoming Bookings", link: "/upcoming-orders" },
     { icon: <GrInProgress className="text-blue-950" size={32} />, value: bookings.length, label: "Orders in progress", link: "/orders-in-progress" },
-    { icon: <MdOutlinePendingActions  className="text-yellow-900" size={32} />, value: bookings.length, label: "Pending Orders", link: "/tickets/review" },
-    { icon: <MdOutlinePendingActions  className="text-yellow-900" size={32} />, value: bookings.length, label: "Order Details", link: "/tickets/review" },
+    { icon: <GrInProgress className="text-blue-950" size={32} />, value: bookings.filter((item) => new Date(item.createdAt).toISOString().split("T")[0] === today).length, label: "Today's Orders", link: "/todays-orders" },
+    { icon: <MdOutlinePendingActions  className="text-yellow-900" size={32} />, value:bookings.filter((item) => !item.pilot && !item.copilot && !item.cancelled).length, label: "Pending Orders", link: "/pending-orders" },
+    { icon: <MdOutlinePendingActions  className="text-yellow-900" size={32} />, value: bookings.length, label: "Filter Details", link: "/all-appointments" },
   ];
   
 

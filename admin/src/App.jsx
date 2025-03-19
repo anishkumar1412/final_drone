@@ -30,6 +30,9 @@ import DroneOwner from './pages/Admin/DroneOwner';
 import ApprovedRefunds from './pages/Admin/ApprovedRefunds';
 import AddUser from './pages/Admin/AddAdmin';
 import AddAdmin from './pages/Admin/AddAdmin';
+import DeclinedRefunds from './pages/Admin/DeclinedRefund';
+import TodaysOrder from './pages/Admin/TodaysOrder';
+import PendingOrder from './pages/Admin/PendingOrders';
 
 
 function App() {
@@ -57,6 +60,9 @@ function App() {
            <Route path='/add-crop' element={<AddCrop/>} />
            <Route path='/doctor-list' element={<DroneList/>} />
           <Route path='/upcoming-orders' element={<UpComingOrders/>}/>
+          <Route path='/todays-orders' element={<TodaysOrder/>}/>
+          <Route path='/pending-orders' element={<PendingOrder/>}/>
+
           <Route path='/orders-in-progress' element={<OrdersInProgress/>}/>
           <Route path='/cancelled-orders' element={<CancelOrder/>}/>
            <Route path="/tickets/review" element={<Review />} />
@@ -65,6 +71,7 @@ function App() {
             <Route path="/tickets/enquiry" element={<Enquiry />} />
             <Route path="/tickets/other" element={<Other />} />
             <Route path="/approved-refunds" element={<ApprovedRefunds />} />
+            <Route path="/declined-refunds" element={<DeclinedRefunds />} />
             <Route path="/add-admins" element={<AddAdmin />} />
 
 
