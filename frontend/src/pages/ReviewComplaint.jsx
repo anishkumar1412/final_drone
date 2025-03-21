@@ -15,7 +15,7 @@ function ReviewComplaint() {
   const [pilot, setPilot] = useState({ Pilotname: "", Pilotemail: "", PilotmobNumber: "" });
   const [copilot, setCoPilot] = useState({ Copilotname: "", Copilotemail: "", CopilotmobNumber: "" });
   const [hasRefunded, setHasRefunded] = useState(false); // State to track refund request status
-
+  const {backendUrl} = useContext(AppContext)
   const [formData, setFormData] = useState({
     orderId,
     type: "Review", // Default type
@@ -114,6 +114,32 @@ function ReviewComplaint() {
   const handleSubmit = async (e) => {
     e.preventDefault();
       // Validate refund amount
+    if(formData.type ==="Refund" && (pilot.Pilotname === "" )||(copilot.Copilotname===""))
+    {
+      Swal.fire({
+        icon:"error",
+        title:"Pilot or Copliot has not assigned yet!",
+        text:"You can't request The Refund if either the pilot or Copilot  has not been assigned yet"
+      });
+      setFormData({
+        orderId,
+        type: "Review",
+        rating: 5,
+        reviewTitle: "",
+        reviewText: "",
+        complaintText: "",
+        enquiryText: "",
+        refundReason: "",
+        refundRequestAmount: 0,
+        AccountHolderName: "",
+        bankAccountNumber: "",
+        bankAddress:"",
+        bankName:"",
+        bankIFSC: "",
+        date: new Date().toISOString(),
+      });
+      return;
+    }
   if (formData.type === "Refund" && formData.refundRequestAmount > product.price) {
     Swal.fire({
       icon: "error",

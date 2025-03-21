@@ -101,6 +101,11 @@ const BookProduct = () => {
 
       if (response.data.success) {
         toast.success("Booking successful!");
+<<<<<<< HEAD
+=======
+        // window.responsiveVoice.speak("Booking safal heichhi", "Hindi Male");
+        navigate('/my-order')
+>>>>>>> e9b75aa619a66ddaa164ed8f53559f97860925f9
       } else {
         toast.error(response.data.message || "Booking failed.");
       }
