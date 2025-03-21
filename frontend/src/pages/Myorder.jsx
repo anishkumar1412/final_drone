@@ -17,6 +17,7 @@ function Myorder() {
   const [cancellationReason, setCancellationReason] = useState("");
   const [customMessage, setCustomMessage] = useState("");
   const { backendUrl } = useContext(AppContext)
+  const [workData, setWorkData] = useState({});
 
 
   const [selectedItemId, setSelectedItemId] = useState(null);
@@ -193,12 +194,12 @@ function Myorder() {
     if (token) {
       getPilotTask();
     }
-  }, [token]);
+  }, [token,workData]);
   useEffect(() => {
     if (token) {
       getCoPilotTask();
     }
-  }, [token]);
+  }, [token,workData]);
 
   const getBooking = async () => {
     try {
@@ -371,10 +372,12 @@ function Myorder() {
 
       // Show success message
       if (data.success) {
+        
         await Swal.fire({
           title: "Updated!",
           text: data.message,
           icon: "success",
+         
         });
       } else {
         await Swal.fire({
@@ -383,6 +386,8 @@ function Myorder() {
           icon: "error",
         });
       }
+
+      window.location.reload()
     } catch (error) {
       console.error("Error updating work progress:", error);
 

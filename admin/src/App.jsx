@@ -30,6 +30,7 @@ import DroneOwner from './pages/Admin/DroneOwner';
 import ApprovedRefunds from './pages/Admin/ApprovedRefunds';
 import AddUser from './pages/Admin/AddAdmin';
 import AddAdmin from './pages/Admin/AddAdmin';
+import AddWorkingDay from './pages/Admin/AddWorkingDay';
 
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
            <Route path='/all-appointments' element={<Appointment/>} />
            <Route path='/add-doctor' element={<AddDoctor/>} />
            <Route path='/add-crop' element={<AddCrop/>} />
+           <Route path='/add-wd' element={<AddWorkingDay/>} />
            <Route path='/doctor-list' element={<DroneList/>} />
           <Route path='/upcoming-orders' element={<UpComingOrders/>}/>
           <Route path='/orders-in-progress' element={<OrdersInProgress/>}/>

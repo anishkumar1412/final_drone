@@ -130,7 +130,10 @@ const cancelBooking = async (req, res) => {
         $set: { 
           cancelled: true, 
           cancellationReason, 
-          customMessage 
+          customMessage ,
+          pilot: null, // Set pilot to null
+          coPilot: null // Set coPilot to null
+
         } 
       },
       { new: true }

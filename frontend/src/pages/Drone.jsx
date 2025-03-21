@@ -15,6 +15,18 @@ function Drone() {
   const [filteredDrones, setFilteredDrones] = useState([]);
   const [startDate, setStartDate] = useState(null);
 
+
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDroneId, setSelectedDroneId] = useState(null);
+
+  const handleDateChange = (date, droneId) => {
+    setSelectedDate(date); // Store the selected start date
+    setSelectedDroneId(droneId); // Mark which drone's calendar should reflect the date
+  };
+
+
+
+
   useEffect(() => {
     filterDrones(selectedState, selectedDistrict, startDate);
   }, [drones, selectedState, selectedDistrict, startDate]);
@@ -28,12 +40,34 @@ function Drone() {
     setSelectedDistrict(event.target.value);
   };
 
-  const handleBook = (drone) => {
+  const handleBook = (drone, startDate) => {
+
+
     if (!token) {
-      navigate('/login');
-      window.scrollTo(0, 0);
+
+      if (!selectedDate) {
+        alert("Please select a start date before booking.");
+        return;
+      } else {
+
+
+        navigate('/login');
+        window.scrollTo(0, 0);
+      }
     } else {
-      navigate('/book-your-drone', { state: drone });
+
+      if (!selectedDate) {
+        alert("Please select a start date before booking.");
+        return;
+      }
+
+      if(selectedDistrict=== 'All' || selectedState ==='All'){
+        alert("Please select the state and distric both")
+        return ;
+      }
+
+      console.log("This is the data", drone, selectedDate)
+      navigate('/book-your-drone', { state: { drone, selectedDate } });
       window.scrollTo(0, 0);
     }
   };
@@ -49,17 +83,7 @@ function Drone() {
       filtered = filtered.filter(drone => drone.district === district);
     }
 
-    if (start) {
-      const formattedStartDate = start.setHours(0, 0, 0, 0);
 
-      filtered = filtered.filter(drone =>
-        !drone.bookings.some(booking => {
-          const bookingStart = new Date(booking.startDate).setHours(0, 0, 0, 0);
-          const bookingEnd = new Date(booking.endDate).setHours(0, 0, 0, 0);
-          return formattedStartDate >= bookingStart && formattedStartDate <= bookingEnd;
-        })
-      );
-    }
 
     setFilteredDrones(filtered);
   };
@@ -97,7 +121,7 @@ function Drone() {
           </select>
         </div>
 
-        <div className="flex justify-center mb-6">
+        {/* <div className="flex justify-center mb-6">
           <DatePicker
             selected={startDate}
             onChange={date => setStartDate(date)}
@@ -106,7 +130,7 @@ function Drone() {
             placeholderText="Select Start Date"
             className="p-2 border rounded-lg"
           />
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredDrones.length > 0 ? (
@@ -132,26 +156,27 @@ function Drone() {
                     </ul>
                   </div>
                 </div>
-                <div className="w-full mb-4">
-                  <DatePicker
-                    inline
-                    minDate={new Date()}
-                    excludeDates={drone.bookings
-                      .map(booking => {
-                        const start = new Date(booking.startDate);
-                        const end = new Date(booking.endDate);
-                        const dates = [];
-                        while (start <= end) {
-                          dates.push(new Date(start));
-                          start.setDate(start.getDate() + 1);
-                        }
-                        return dates;
-                      })
-                      .flat()}
-                    dateFormat="dd/MM/yyyy"
-                    calendarClassName="custom-calendar"
-                  />
-                </div>
+                <DatePicker
+                  inline
+                  selected={selectedDroneId === drone._id ? selectedDate : null} // Show date only for selected drone
+                  onChange={(date) => handleDateChange(date, drone._id)}
+                  minDate={new Date()}
+                  excludeDates={drone.bookings
+                    .map((booking) => {
+                      const start = new Date(booking.startDate);
+                      const end = new Date(booking.endDate);
+                      const dates = [];
+                      while (start <= end) {
+                        dates.push(new Date(start));
+                        start.setDate(start.getDate() + 1);
+                      }
+                      return dates;
+                    })
+                    .flat()}
+                  dateFormat="dd/MM/yyyy"
+                  calendarClassName="custom-calendar"
+                />
+
                 {drone.availability ? (
                   <button
                     onClick={() => handleBook(drone)}

@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AppContext } from "../Context/AppContext";
 import axios from "axios";
@@ -20,30 +20,35 @@ const BookProduct = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [cropPrice, setCropPrice] = useState(0)
-  const {backendUrl} = useContext(AppContext)
+  const [endDate, setEndDate] = useState(null)
 
-  const navigate = useNavigate()
- 
 
 
 
   const [numbers, setNumbers] = useState([]);
-  const { startDate, endDate, setStartDate, setEndDate, token, crops } = useContext(AppContext); // Assuming you have setStartDate and setEndDate in AppContext
+  const {  token, crops } = useContext(AppContext); // Assuming you have setStartDate and setEndDate in AppContext
 
   const location = useLocation();
-  const drone = location.state;
+
+  const { drone, selectedDate } = location.state || {};
+
+  console.log("Selceting date is coming here", drone, selectedDate)
+
+  const [startDate, setStartDate] = useState(selectedDate);
+
+
 
   console.log(drone.image)
-
+ 
 
   const [bookedDates, setBookedDates] = useState([]); // State to hold booked dates
 
   // Fetch booked dates from the backend (example API call)
 
-  const handleLandSelect = (e) => {
-    const selectedValue = e.target.value;
-    setSpecificLandPrice(selectedValue);
-  };
+  // const handleLandSelect = (e) => {
+  //   const selectedValue = e.target.value;
+  //   setSpecificLandPrice(selectedValue);
+  // };
 
   // Logic to calculate subtotal
   const calculateSubtotal = () => {
@@ -57,20 +62,8 @@ const BookProduct = () => {
   };
 
   // Logic to automatically set working days based on land selection
-  const handleLandSelection = (value) => {
-    setLandPrice(value);
-    if (value === "10 to 15") setWorkingDays(1);
-    else if (value === "16 to 30") setWorkingDays(2);
-    else if (value === "31 to 45") setWorkingDays(3);
-    else if (value === "46 to 60") setWorkingDays(4);
-
-    const [start, end] = value.split(' to ').map(Number);
-    const rangeNumbers = [];
-    for (let i = start; i <= end; i++) {
-      rangeNumbers.push(i);
-    }
-    setNumbers(rangeNumbers);
-  };
+ 
+  
 
   const handleBooked = async (e) => {
     e.preventDefault(); // Prevent form from submitting and refreshing the page
@@ -99,16 +92,15 @@ const BookProduct = () => {
       console.log("it is running")
       console.log(bookingData)
 
-      const response = await axios.post(`${backendUrl}/api/booking/book`, bookingData, {
+      const response = await axios.post("http://localhost:5000/api/booking/book", bookingData, {
         headers: {
-          Authorization: `Bearer ${token}`,//http://localhost:5000
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
 
       if (response.data.success) {
         toast.success("Booking successful!");
-        navigate('/my-order')
       } else {
         toast.error(response.data.message || "Booking failed.");
       }
@@ -118,59 +110,75 @@ const BookProduct = () => {
     }
   };
 
-
-
-
-
-
-
   const handleCropChange = (selectedCrop) => {
     setCrop(selectedCrop.cropName);
     setCropImage(selectedCrop.image);
     setIsDropdownOpen(false);
     setCropPrice(selectedCrop.cropPerAcer)
     console.log(cropPrice)
+    setSpecificLandPrice(selectedCrop.
+      cropPerAcer)
 
   };
 
-  
 
   const handleStartDateChange = (date) => {
     setIsCalendarOpen(false);
     setStartDate(date);
-  
+
     if (workingDays > 0) {
       let calculatedEndDate = new Date(date);
       let daysAdded = 0;
       let hasBookedDate = false; // Flag to track if any booked date exists in range
-  
+
       while (daysAdded < workingDays) {
         // Move to the next day
         calculatedEndDate = addDays(calculatedEndDate, 1);
-  
+
         // Check if the calculatedEndDate is within any booked range
         const isBooked = drone.bookings.some((booking) => {
           const bookingStart = new Date(booking.startDate);
           const bookingEnd = new Date(booking.endDate);
           return calculatedEndDate >= bookingStart && calculatedEndDate <= bookingEnd;
         });
-  
+
         if (isBooked) {
           hasBookedDate = true;
         } else {
           daysAdded++; // Only count non-booked dates
         }
       }
-  
+
       // If no booked dates were encountered, reduce the end date by 1 day
       if (!hasBookedDate) {
         calculatedEndDate = addDays(calculatedEndDate, -1);
       }
-  
+
       setEndDate(calculatedEndDate);
     }
   };
+
+  const handleLandSelection = (value) => {
+    const selectedNumber = Number(value);
+    
+    setLandPrice(value)
+    setLandPrice(selectedNumber);
+    
+    if (selectedNumber >= 10 && selectedNumber <= 15) setWorkingDays(1);
+    else if (selectedNumber >= 16 && selectedNumber <= 30) setWorkingDays(2);
+    else if (selectedNumber >= 31 && selectedNumber <= 45) setWorkingDays(3);
+    else if (selectedNumber >= 46) setWorkingDays(4);
+    else setWorkingDays(0); // Default case if not in the defined range
   
+    setNumbers(Array.from({ length: selectedNumber }, (_, i) => i + 1));
+  
+    // Ensure you are using the latest startDate
+  
+  };
+
+  useEffect(() => {
+    handleStartDateChange(startDate);
+  }, [workingDays, startDate]); // Re-run whenever workingDays or startDate changes
   
   
 
@@ -244,7 +252,7 @@ const BookProduct = () => {
             </div>
 
             {/* Land Price */}
-            <div>
+            {/* <div>
               <label className="block mb-1 font-medium text-gray-700">
                 Select Land (Acres) <span className="text-red-500">*</span>
               </label>
@@ -259,7 +267,7 @@ const BookProduct = () => {
                 <option value="31 to 45">31 to 45</option>
                 <option value="46 to 60">46 to 60</option>
               </select>
-            </div>
+            </div> */}
 
             {/* Specific Land Price */}
             <div>
@@ -267,19 +275,16 @@ const BookProduct = () => {
                 Specific Land (Acres) <span className="text-red-500">*</span>
               </label>
 
-              <select
-                className="w-full p-2 border rounded-lg mt-4"
-                onChange={handleLandSelect}
-              >
-                <option value="">Select Specific range</option>
-                {numbers.map((number) => (
-                  <option key={number} value={number}>
-                    {number}
+              <select className="w-full p-2 border rounded-lg mt-4" onChange={(e)=>handleLandSelection(e.target.value)}>
+                <option value="">Select Specific Range</option>
+                {[...Array(100)].map((_, index) => (
+                  <option key={index + 1} value={index + 1}>
+                    {index + 1}
                   </option>
                 ))}
               </select>
-
             </div>
+
 
             {/* Working Days */}
             <div>
@@ -380,7 +385,7 @@ const BookProduct = () => {
               <input
                 type="text"
                 className="w-full p-2 border rounded-lg"
-                value={`₹${specificLandPrice * cropPrice}`}
+                value={`₹${landPrice * cropPrice}`}
                 readOnly
               />
             </div>
@@ -412,18 +417,17 @@ const BookProduct = () => {
             <hr />
             <li className="flex justify-between">
               <span className="font-semibold text-gray-700 text-lg">Land:</span>
-              <span className="text-lg text-gray-900">{landPrice || 0}</span>
+              <span className="text-lg text-gray-900">{landPrice}</span>
             </li>
             <hr />
             <li className="flex justify-between">
               <span className="font-semibold text-gray-700 text-lg">Specific Land (per acre):</span>
-              <span className="text-lg text-gray-900">{specificLandPrice || 0}</span>
+              <span className="text-lg text-gray-900">₹{cropPrice || 0}</span>
             </li>
-           
             <hr />
             <li className="flex justify-between">
               <span className="font-semibold text-gray-700 text-lg">Subtotal:</span>
-              <span className="text-lg text-gray-900">₹{specificLandPrice * cropPrice}</span>
+              <span className="text-lg text-gray-900">₹{landPrice * cropPrice}</span>
             </li>
             <hr />
           </ul>

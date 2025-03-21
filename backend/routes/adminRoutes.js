@@ -22,7 +22,6 @@ router.post('/addCrop',upload.single('image'),addCrop)
 router.get('/getBookings',getAllBookings)
 
 router.post('/login',loginAdmin)
-router.post("/cancelBooking/:id",authAdmin,adminCancelBooking)
 router.post('/removeDrone/:id',authAdmin,removeDrone)
 router.post('/removeCrop/:id',authAdmin,removeCrop)
 router.post('/changeAvailability/:id',changeAvailability)
