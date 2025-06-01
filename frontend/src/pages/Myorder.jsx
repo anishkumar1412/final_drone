@@ -20,6 +20,8 @@ function Myorder() {
   const [workData, setWorkData] = useState({});
 
 
+
+
   const [selectedItemId, setSelectedItemId] = useState(null);
 
   const toggleDetails = (itemId) => {
@@ -32,6 +34,8 @@ function Myorder() {
       [taskId]: { ...prev[taskId], [field]: value },
     }));
   };
+
+
 
   const getCoPilotTask = async () => {
     try {
@@ -125,6 +129,7 @@ function Myorder() {
                 "Co-Pilot has been cancelled.",
                 "success"
               );
+              window.reload.location()
             } else {
               Swal.fire("Error!", data.message, "error");
             }
@@ -160,6 +165,7 @@ function Myorder() {
 
             if (data.success) {
               Swal.fire("Confirmed!", "Pilot has been confirmed.", "success");
+              window.location.reload()
             } else {
               Swal.fire("Error!", data.message, "error");
             }
@@ -179,6 +185,7 @@ function Myorder() {
                 "Co-Pilot has been confirmed.",
                 "success"
               );
+              window.reload.location()
             } else {
               Swal.fire("Error!", data.message, "error");
             }
@@ -194,12 +201,13 @@ function Myorder() {
     if (token) {
       getPilotTask();
     }
-  }, [token,workData]);
+  }, [token, workData]);
+
   useEffect(() => {
     if (token) {
       getCoPilotTask();
     }
-  }, [token,workData]);
+  }, [token, workData]);
 
   const getBooking = async () => {
     try {
@@ -260,6 +268,46 @@ function Myorder() {
       });
     }
   };
+
+
+  const farmerFinalVerify = async (bookingId) => {
+    try {
+      const { data } = await axios.post(
+        `${backendUrl}/api/booking/farmerFinalVerify/${bookingId}`,
+        {},
+
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      alert(data.message);
+      // Refresh data to update UI
+
+
+      // Success notification using SweetAlert
+      Swal.fire({
+        icon: "success",
+        title: "Verified!",
+        text: "Final has been successfully verified.",
+        confirmButtonColor: "#3085d6",
+      });
+    } catch (error) {
+      console.error("Error verifying final:", error);
+
+      // Error notification using SweetAlert
+      Swal.fire({
+        icon: "error",
+        title: "Verification Failed!",
+        text: "Something went wrong. Please try again.",
+        confirmButtonColor: "#d33",
+      });
+    }
+  };
+
+
+
+
 
   useEffect(() => {
     getBooking();
@@ -361,7 +409,7 @@ function Myorder() {
         });
       }
 
-      // Make API call
+      // Make API callword
       const { data } = await axios.post(
         `${backendUrl}/api/booking/workUpdate/${id}`,
         { date, done, pending }, // ✅ Include date
@@ -372,12 +420,12 @@ function Myorder() {
 
       // Show success message
       if (data.success) {
-        
+
         await Swal.fire({
           title: "Updated!",
           text: data.message,
           icon: "success",
-         
+
         });
       } else {
         await Swal.fire({
@@ -402,10 +450,13 @@ function Myorder() {
 
   const completeWork = async (id) => {
     try {
+
+
+
       // Show confirmation dialog before updating
       const result = await Swal.fire({
         title: "Are you sure?",
-        text: "Comleted?",
+        text: "Completed?",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -455,6 +506,93 @@ function Myorder() {
       });
     }
   };
+
+
+  const updateProgress = async (id, progress) => {
+    try {
+      // Show confirmation popup
+      const confirm = await Swal.fire({
+        title: "Are you sure?",
+        text: "Do you want to update the progress?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, update it!",
+      });
+
+      if (!confirm.isConfirmed) return;
+
+      const { data } = await axios.post(
+        `${backendUrl}/api/booking/progress/${id}`,
+        { progress: progress },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (data.success) {
+        Swal.fire({
+          title: "Updated!",
+          text: "Progress updated successfully.",
+          icon: "success",
+        });
+      } else {
+        Swal.fire({
+          title: "Not Updated!",
+          text: data.message,
+          icon: "error",
+        });
+      }
+
+    } catch (error) {
+      console.error("Error updating progress:", error.response?.data || error.message);
+    }
+  };
+
+
+  const [filedImg, setFieldImg] = useState(null)
+  const [previewMap, setPreviewMap] = useState({});
+
+  const handleImageChange = (e, taskId) => {
+    const file = e.target.files[0];
+    setSelectedImages((prev) => ({ ...prev, [taskId]: file }));
+    setPreviewMap((prev) => ({ ...prev, [taskId]: URL.createObjectURL(file) }));
+  };
+
+  const handleUpload = async (taskId) => {
+    try {
+      if (!filedImg) {
+        return toast.error('Image not selected');
+      }
+
+      const formData = new FormData();
+      formData.append('image', filedImg);
+
+      console.log(formData)
+
+
+
+      const { data } = await axios.post(
+        `${backendUrl}/api/booking/addFiledImage/${taskId}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+      console.log(error);
+    }
+  };
+
+
 
   return (
     <>
@@ -517,9 +655,56 @@ function Myorder() {
                           />
                           <p className="text-sm text-gray-600">Drone A</p>
                         </td>
-                        <td className="border px-4 py-2">
-                          {task.villagePanchayat}, {task.pinCode}
+                        <td className="border px-4 py-4 align-top">
+                          {/* Panchayat and Pincode */}
+                          <div className="text-sm font-medium text-gray-700 mb-2">
+                            {task.villagePanchayat}, {task.pinCode}
+                          </div>
+
+                          {/* Upload Section */}
+                          <div className="flex flex-col items-center gap-3 bg-gray-50 p-4 rounded-md shadow-sm">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => setFieldImg(e.target.files[0])}
+                              className="block w-full text-sm text-gray-600
+                                         file:mr-2 file:py-1 file:px-3 file:border-0
+                                         file:rounded-md file:bg-blue-100 file:text-blue-700
+                                       hover:file:bg-blue-200"
+                            />
+
+                            {/* Uploaded Image Display */}
+                            {task.fieldImage && (
+                              <img
+                                src={task.fieldImage}
+                                alt="Uploaded Proof"
+                                className="w-24 h-24 object-cover rounded-lg shadow-md border border-gray-300"
+                              />
+                            )}
+
+                            {/* Upload Button */}
+                            <button
+                              onClick={() => handleUpload(task._id)}
+                              className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-1.5 rounded-md shadow"
+                            >
+                              Upload
+                            </button>
+
+                            {/* View Link */}
+                            {task.fieldImage && (
+                              <a
+                                href={task.fieldImage}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 underline text-xs"
+                              >
+                                View Proof
+                              </a>
+                            )}
+                          </div>
                         </td>
+
+
                         <td className="border px-4 py-2">
                           {task.crop} Farming
                         </td>
@@ -530,7 +715,39 @@ function Myorder() {
                           {formatDate(task.endDate)}
                         </td>
                         <td className="border px-4 py-2">
-                          ₹{task.specificLandPrice} per acre
+                          <div className="flex flex-col space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Subtotal:</span>
+                              <span className="font-medium">₹{task.subtotal}</span>
+                            </div>
+
+                            {task.specificLandPrice && task.workProgress && (() => {
+                              const totalDone = task.workProgress.reduce((sum, work) => sum + Number(work.done), 0);
+                              const extraAcres = Math.max(totalDone - task.specificLandPrice, 0);
+                              const extraAmount = extraAcres * task.cropPrice;
+
+                              return extraAcres > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Extra ({extraAcres}A):</span>
+                                  <span className="text-green-600">+ ₹{extraAmount}</span>
+                                </div>
+                              );
+                            })()}
+
+                            <div className="flex justify-between border-t pt-1">
+                              <span className="font-semibold">Total:</span>
+                              <span className="font-semibold">
+                                ₹{Number(task.subtotal) +
+                                  (task.specificLandPrice && task.workProgress ?
+                                    Math.max(
+                                      (task.workProgress.reduce(
+                                        (sum, work) => sum + Number(work.done), 0
+                                      ) - task.specificLandPrice) * task.cropPrice, 0
+                                    ) : 0)
+                                }
+                              </span>
+                            </div>
+                          </div>
                         </td>
                         <td className="border px-4 py-2">
                           <p>
@@ -640,6 +857,21 @@ function Myorder() {
                                   Yes
                                 </button>
                               </p>
+                              <p className="text-green-700 font-semibold flex mt-2 items-center">
+                                Progressing
+                                <button
+                                  className="ml-2 px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                                  onClick={() => updateProgress(task._id, true)}
+                                >
+                                  Yes
+                                </button>
+                                <button
+                                  className="ml-2 px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                                  onClick={() => updateProgress(task._id, false)}
+                                >
+                                  No
+                                </button>
+                              </p>
 
                               <div className="mt-2 flex items-center">
                                 <label className="text-green-700 font-medium w-1/3">
@@ -649,14 +881,12 @@ function Myorder() {
                                   type="date"
                                   className="px-2 py-1 w-2/3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 text-xs"
                                   value={workData[task._id]?.date || ""}
+                                  min={new Date().toISOString().split("T")[0]} // 👈 disables past dates
                                   onChange={(e) =>
-                                    handleInputChange(
-                                      task._id,
-                                      "date",
-                                      e.target.value
-                                    )
+                                    handleInputChange(task._id, "date", e.target.value)
                                   }
                                 />
+
                               </div>
 
                               <div className="mt-2 flex items-center">
@@ -687,14 +917,19 @@ function Myorder() {
                                 Submit
                               </button>
                             </div>
-                          ) : task.pilotCancelled ? (
+                          ) : task.pilotCancelled || task.cancelled ? (
                             <div className="bg-red-700 font-semibold text-white rounded py-2">
                               Cancelled
                             </div>
-                          ) : task.workCompleted ? (
+                          ) : task.workCompleted && task.farmerVerifiedComplete ? (
                             <button className="mt-3 w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
                               Completed
                             </button>
+                          ) : task.workCompleted && !task.farmerVerifiedComplete ? (
+                            <p className="mt-3 w-full bg-yellow-100 text-yellow-800 px-4 py-2 rounded text-center">
+                              Waiting for confirmation <br />of farmer
+                            </p>
+
                           ) : (
                             <div className="flex flex-col gap-2">
                               <button
@@ -773,7 +1008,39 @@ function Myorder() {
                           {formatDate(task.endDate)}
                         </td>
                         <td className="border px-4 py-2">
-                          ₹{task.specificLandPrice} per acre
+                          <div className="flex flex-col space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Subtotal:</span>
+                              <span className="font-medium">₹{task.subtotal}</span>
+                            </div>
+
+                            {task.specificLandPrice && task.workProgress && (() => {
+                              const totalDone = task.workProgress.reduce((sum, work) => sum + Number(work.done), 0);
+                              const extraAcres = Math.max(totalDone - task.specificLandPrice, 0);
+                              const extraAmount = extraAcres * task.cropPrice;
+
+                              return extraAcres > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-gray-600">Extra ({extraAcres}A):</span>
+                                  <span className="text-green-600">+ ₹{extraAmount}</span>
+                                </div>
+                              );
+                            })()}
+
+                            <div className="flex justify-between border-t pt-1">
+                              <span className="text-sm font-semibold">Total:</span>
+                              <span className="font-semibold">
+                                ₹{Number(task.subtotal) +
+                                  (task.specificLandPrice && task.workProgress ?
+                                    Math.max(
+                                      (task.workProgress.reduce(
+                                        (sum, work) => sum + Number(work.done), 0
+                                      ) - task.specificLandPrice) * task.cropPrice, 0
+                                    ) : 0)
+                                }
+                              </span>
+                            </div>
+                          </div>
                         </td>
                         <td className="border px-4 py-2">
                           <p>
@@ -872,7 +1139,7 @@ function Myorder() {
                             <div className="bg-green-700 font-semibold text-white rounded py-1">
                               Confirmed
                             </div>
-                          ) : task.copilotCancelled ? (
+                          ) : task.copilotCancelled || task.cancelled ? (
                             <div className="bg-red-700 font-semibold text-white rounded py-1">
                               Cancelled
                             </div>
@@ -950,9 +1217,39 @@ function Myorder() {
                         <p className="text-zinc-700 font-medium mt-1">
                           Land Acre: {item.specificLandPrice}
                         </p>
-                        <p className="text-zinc-700 font-medium mt-1">
-                          Total: {item.subtotal}
-                        </p>
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span className="text-zinc-700 font-medium">Subtotal:</span>
+                            <span className="text-zinc-700">₹{item.subtotal}</span>
+                          </div>
+
+                          {item.specificLandPrice && item.workProgress && (() => {
+                            const totalDone = item.workProgress.reduce((sum, work) => sum + Number(work.done), 0);
+                            const extraAcres = Math.max(totalDone - item.specificLandPrice, 0);
+                            const extraAmount = extraAcres * item.cropPrice;
+
+                            return extraAcres > 0 && (
+                              <div className="flex justify-between">
+                                <span className="text-zinc-700 font-medium">Extra ({extraAcres}A):</span>
+                                <span className="text-green-600">+ ₹{extraAmount}</span>
+                              </div>
+                            );
+                          })()}
+
+                          <div className="flex justify-between border-t pt-1">
+                            <span className="text-zinc-700 font-semibold">Total:</span>
+                            <span className="text-zinc-700 font-semibold">
+                              ₹{Number(item.subtotal) +
+                                (item.specificLandPrice && item.workProgress ?
+                                  Math.max(
+                                    (item.workProgress.reduce(
+                                      (sum, work) => sum + Number(work.done), 0
+                                    ) - item.specificLandPrice) * item.cropPrice, 0
+                                  ) : 0)
+                              }
+                            </span>
+                          </div>
+                        </div>
 
                         <p className="text-sm mt-1">
                           <span className="text-sm text-neutral-700 font-medium">
@@ -977,7 +1274,7 @@ function Myorder() {
                           <div className="bg-red-500 text-white text-center py-2 px-4 rounded-md w-[50%] font-semibold">
                             ❌ Cancelled
                           </div>
-                        ) : item.workCompleted ? (
+                        ) : item.workCompleted && item.farmerVerifiedComplete ? (
                           // Work Completed
                           <>
 
@@ -1106,9 +1403,17 @@ function Myorder() {
                               <span className="font-medium">Pilot:</span>{" "}
                               {item.pilotName}
                             </p>
-                            <p className="text-sm">
+                            <p className=" text-sm">
+                              <span className="font-medium">Pilot Mob:</span>{" "}
+                              {item.pilotMobile}
+                            </p>
+                            <p className=" mt-2 text-sm">
                               <span className="font-medium">Co-pilot:</span>{" "}
                               {item.copilotName}
+                            </p>
+                            <p className="text-sm">
+                              <span className="font-medium">Co-pilot Mob:</span>{" "}
+                              {item.copilotMobile}
                             </p>
                           </div>
                         ) : !item.orderConfirmed && !item.workProgress ? (
@@ -1220,6 +1525,24 @@ function Myorder() {
                                   )
                                 )}
                               </div>
+
+                              {
+                                item.workCompleted ? (
+                                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md shadow-sm">
+                                    <p className="text-green-700 font-semibold mb-2">
+                                      🎉 All work completed! Ready for final verification.
+                                    </p>
+                                    <button
+                                      onClick={() => farmerFinalVerify(item._id)}
+                                      className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md transition duration-200"
+                                    >
+                                      Final Verify
+                                    </button>
+                                  </div>
+                                ) : null
+                              }
+
+
                             </div>
                           </>
                         )}
@@ -1277,7 +1600,7 @@ function Myorder() {
                     </td>
                   </tr>
                 ))}
-                
+
               </tbody>
             </table>
           </div>

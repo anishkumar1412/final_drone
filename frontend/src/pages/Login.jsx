@@ -43,6 +43,12 @@ function Login() {
       : `${backendUrl}/api/auth/login`;
 
     try {
+
+      if(isRegistering && formData.pin.length <6 || formData.pin.length >6){
+        alert('pin must be in 6 digit')
+        return
+      }
+
       const response = await axios.post(endpoint, formData, {
         headers: {
           "Content-Type": "application/json",

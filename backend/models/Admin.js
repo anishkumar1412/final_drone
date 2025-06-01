@@ -9,3 +9,16 @@ const adminSchema = new mongoose.Schema({
 });
 
 export const Admin = mongoose.model("Admin", adminSchema);
+
+// export default (sequelize, DataTypes) =>{
+//   const adminSchema = sequelize.define("Admin",{
+//     name:{type:DataTypes.String},
+//     email:{type:DataTypes.String}
+//  })
+
+
+//    return adminSchema;
+
+// }
+
+

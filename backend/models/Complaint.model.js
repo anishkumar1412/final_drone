@@ -13,6 +13,6 @@ const ComplaintSchema = new mongoose.Schema({
 
 })
 
-const Complaint = mongoose.model("complaint",ComplaintSchema)
+const Complaint = mongoose.model("complaint", ComplaintSchema)
 
 export default Complaint;

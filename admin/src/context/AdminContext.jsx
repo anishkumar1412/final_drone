@@ -22,6 +22,8 @@ const AdminContextProvider = (props) => {
     const [cancelledBookings, setCancelledBookings] = useState([]);
     const [allUsers, setAllUsers] = useState([])
     const [crops, setCrops] = useState(null)
+  const [sidebarVisible, setSidebarVisible] = useState(true); // <-- Sidebar toggle
+
 
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL
@@ -199,24 +201,24 @@ const AdminContextProvider = (props) => {
 
                 console.log(data.allBooking)
                 const cancelledBookings = data.allBooking.filter(booking => booking.cancelled === true);
-     setCancelledBookings(cancelledBookings);
-                
+                setCancelledBookings(cancelledBookings);
+
                 const cancelledCount = cancelledBookings.length;
                 console.log(cancelledCount)
-    
+
                 // Update state with the count
                 setCancelledOrdersCount(cancelledCount);
                 console.log("Cancelled Orders Count:", cancelledCount);
 
             } else {
-                toast.error(data.message)
+                // toast.error(data.message)
             }
 
         } catch (error) {
-            toast.error(error.message)
+            // toast.error(error.message)
         }
     }
-    
+
     useEffect(() => {
         getAllBokings();
     }, [])
@@ -226,18 +228,18 @@ const AdminContextProvider = (props) => {
             if (data.success) {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0); // Reset time to start of the day
-    
+
                 const sevenDaysLater = new Date();
                 sevenDaysLater.setDate(today.getDate() + 7); // Get date 7 days ahead
-    
+
                 // Filter bookings for the next 7 days (including today)
                 const filteredBookings = data.allBooking.filter(booking => {
                     const bookingDate = new Date(booking.startDate);
                     bookingDate.setHours(0, 0, 0, 0); // Reset time for accurate comparison
-                    
+
                     return bookingDate >= today && bookingDate <= sevenDaysLater;
                 });
-    
+
                 setUpComingBookings(filteredBookings);
                 console.log("Upcoming Bookings (Next 7 Days):", filteredBookings);
             } else {
@@ -247,9 +249,9 @@ const AdminContextProvider = (props) => {
             toast.error(error.message);
         }
     };
-    useEffect(()=>{
+    useEffect(() => {
         getUpcomingBookings();
-    },[])
+    }, [])
 
     const getOrdersInProgress = async () => {
         try {
@@ -338,6 +340,7 @@ const AdminContextProvider = (props) => {
 
                     if (response.data.success) {
                         Swal.fire("Cancelled!", "Booking has been cancelled.", "success");
+                        window.location.reload()
                     } else {
                         Swal.fire("Error!", response.data.message, "error");
                     }
@@ -402,28 +405,51 @@ const AdminContextProvider = (props) => {
 
     const updatePilot = async (bookingId, pilotId, pilotName) => {
         try {
-          const {data} = await axios.post(
-            `${backendUrl}/api/admin/update-pilot/${bookingId}`,
-            {
-              pilot: pilotId,
-              pilotName: pilotName,
-            },
-            {
-              headers: {
-                Authorization:`Bearer ${aToken}`,
-              },
-            }
-          );
-      
-          console.log("Pilot updated successfully:", data.message);
-          return data;
+            const { data } = await axios.post(
+                `${backendUrl}/api/admin/update-pilot/${bookingId}`,
+                {
+                    pilot: pilotId,
+                    pilotName: pilotName,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${aToken}`,
+                    },
+                }
+            );
+
+            console.log("Pilot updated successfully:", data.message);
+            return data;
         } catch (error) {
-          console.error("Error updating pilot:", data?.message || error.message);
+            console.error("Error updating pilot:", data?.message || error.message);
         }
-      };
+    };
+
+    // const updateCoPilot = async (bookingId, coPilotId, coPilotName) => {
+    //     try {
+    //         const { data } = await axios.post(
+    //             `${backendUrl}/api/admin/update-copilot/${bookingId}`,
+    //             {
+    //                 coPilot: coPilotId,
+    //                 coPilotName: coPilotName,
+    //             },
+    //             {
+    //                 headers: {
+    //                     Authorization: `Bearer ${aToken}`,
+    //                 },
+    //             }
+    //         );
+
+    //         console.log("CoPilot updated successfully:", data.message);
+    //         return data;
+    //     } catch (error) {
+    //         console.error("Error updating pilot:", data?.message || error.message);
+    //     }
+    // };
+
     const updateCoPilot = async (bookingId, coPilotId, coPilotName) => {
         try {
-          const {data} = await axios.post(
+          const { data } = await axios.post(
             `${backendUrl}/api/admin/update-copilot/${bookingId}`,
             {
               coPilot: coPilotId,
@@ -431,7 +457,7 @@ const AdminContextProvider = (props) => {
             },
             {
               headers: {
-                Authorization:`Bearer ${aToken}`,
+                Authorization: `Bearer ${aToken}`,
               },
             }
           );
@@ -439,10 +465,10 @@ const AdminContextProvider = (props) => {
           console.log("CoPilot updated successfully:", data.message);
           return data;
         } catch (error) {
-          console.error("Error updating pilot:", data?.message || error.message);
+          console.error("Error updating copilot:", error.response?.data?.message || error.message);
         }
       };
-
+      
 
     const value = {
         aToken, setAToken,
@@ -453,7 +479,7 @@ const AdminContextProvider = (props) => {
         cancelAppointment,
         getDashData, dashData, drones, formatDate, removeDrone, updateDroneAvailability,
         reviews, setReviews, loading, setLoading, refunds, complaints, setComplaints, enquiry, setEnquiry, cancelledOrdersCount, getUpcomingBookings, upcomingBookings, setUpComingBookings, getOrdersInProgress, ordersInProgress, setOrdersInProgress,
-        allUsers, crops,updatePilot,updateCoPilot,cancelledBookings
+        allUsers, crops, updatePilot, updateCoPilot, cancelledBookings, sidebarVisible,setSidebarVisible
 
     }
 

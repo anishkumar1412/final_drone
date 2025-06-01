@@ -1,13 +1,22 @@
-import mongoose from "mongoose";
+// models/Crop.js
 
-const cropSchema = new mongoose.Schema({
-  cropName: { type: String, required: true },
-  cropPerAcer:{type:Number,required:true},
+export default (sequelize, DataTypes) => {
+  const Crop = sequelize.define('Crop', {
+    cropName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    cropPerAcer: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    image: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+  }, {
+    timestamps: false, // Disable createdAt and updatedAt like in Mongoose by default
+  });
 
-  image: { type: String, required: true },
-
-});
-
-const Crop = mongoose.model("Crop", cropSchema);
-
-export default Crop;
+  return Crop;
+};

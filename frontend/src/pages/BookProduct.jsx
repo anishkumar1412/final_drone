@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AppContext } from "../Context/AppContext";
 import axios from "axios";
@@ -8,25 +8,29 @@ import "react-datepicker/dist/react-datepicker.css"; // Import the required styl
 import { addDays, format } from "date-fns"; // Import date-fns to add days and format dates
 
 const BookProduct = () => {
+
+  const { userData, token, crops, backendUrl } = useContext(AppContext);
+
   const [crop, setCrop] = useState("");
   const [landPrice, setLandPrice] = useState("");
   const [specificLandPrice, setSpecificLandPrice] = useState("");
   const [workingDays, setWorkingDays] = useState(0);
   const [subtotal, setSubtotal] = useState(0);
-  const [villagePanchayat, setVillagePanchayat] = useState("");
-  const [pinCode, setPinCode] = useState("");
+  const [villagePanchayat, setVillagePanchayat] = useState(userData.villageName);
+  const [pinCode, setPinCode] = useState(userData.pin);
   const [email, setEmail] = useState("");
   const [cropImage, setCropImage] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [cropPrice, setCropPrice] = useState(0)
   const [endDate, setEndDate] = useState(null)
+  const [data, setData] = useState([]);
 
 
-
+  const navigate = useNavigate()
 
   const [numbers, setNumbers] = useState([]);
-  const {  token, crops } = useContext(AppContext); // Assuming you have setStartDate and setEndDate in AppContext
+  // const { userData, token, crops ,backendUrl} = useContext(AppContext); // Assuming you have setStartDate and setEndDate in AppContext
 
   const location = useLocation();
 
@@ -36,37 +40,30 @@ const BookProduct = () => {
 
   const [startDate, setStartDate] = useState(selectedDate);
 
-
-
   console.log(drone.image)
- 
 
-  const [bookedDates, setBookedDates] = useState([]); // State to hold booked dates
 
-  // Fetch booked dates from the backend (example API call)
-
-  // const handleLandSelect = (e) => {
-  //   const selectedValue = e.target.value;
-  //   setSpecificLandPrice(selectedValue);
-  // };
-
-  // Logic to calculate subtotal
-  const calculateSubtotal = () => {
-    const specificLandCost = parseFloat(specificLandPrice) || 0;
-    const total = specificLandCost * cropPrice;
-    setSubtotal(total);
-  };
 
   const toggleCalendar = () => {
     setIsCalendarOpen(!isCalendarOpen); // Toggle calendar visibility
   };
 
+
+  useEffect(() => {
+    if (specificLandPrice && cropPrice) {
+      setSubtotal(specificLandPrice * cropPrice);
+    }
+  }, [specificLandPrice, cropPrice]);
+
+
   // Logic to automatically set working days based on land selection
- 
-  
 
   const handleBooked = async (e) => {
     e.preventDefault(); // Prevent form from submitting and refreshing the page
+
+
+
+    console.log(subtotal)
 
     if (subtotal < 500) {
       alert("Minimum ₹500 required to book the product");
@@ -82,17 +79,40 @@ const BookProduct = () => {
         subtotal,
         villagePanchayat,
         pinCode,
-        cropImage,
+        cropImage, // optional field; you can remove if backend doesn't use it
         startDate: formatDate(startDate),
         endDate: formatDate(endDate),
-        droneId: drone._id, // Assuming drone object has an 'id'
-        droneImg: drone.image
+        droneId: drone._id,
+        droneImg: drone.image,
+        droneName: drone.model,
+
+        // Add backend-expected fields with default or null values
+        pilot: null,
+        copilot: null,
+        pilotName: null,
+        copilotName: null,
+        pilotMobile: null,
+        copilotMobile: null,
+        workCompleted: false,
+        pilotConfirm: false,  // ✅ fixed typo from "poliotConfirm"
+        copilotConfirm: false,
+        orderConfirmed: false,
+        pilotCancelled: false,
+        copilotCancelled: false,
+        total: 0,
+        done: 0,
+        pending: 0,
+        workProgress: {},
+        progress: false,
+        farmerVerifiedComplete: false,
+        cropPrice: 0
       };
+
 
       console.log("it is running")
       console.log(bookingData)
 
-      const response = await axios.post("http://localhost:5000/api/booking/book", bookingData, {
+      const response = await axios.post(`${backendUrl}/api/booking/book`, bookingData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -101,11 +121,7 @@ const BookProduct = () => {
 
       if (response.data.success) {
         toast.success("Booking successful!");
-<<<<<<< HEAD
-=======
-        // window.responsiveVoice.speak("Booking safal heichhi", "Hindi Male");
         navigate('/my-order')
->>>>>>> e9b75aa619a66ddaa164ed8f53559f97860925f9
       } else {
         toast.error(response.data.message || "Booking failed.");
       }
@@ -115,14 +131,16 @@ const BookProduct = () => {
     }
   };
 
+
+
+
   const handleCropChange = (selectedCrop) => {
     setCrop(selectedCrop.cropName);
     setCropImage(selectedCrop.image);
     setIsDropdownOpen(false);
     setCropPrice(selectedCrop.cropPerAcer)
+    setTimeout(calculateSubtotal, 0)
     console.log(cropPrice)
-    setSpecificLandPrice(selectedCrop.
-      cropPerAcer)
 
   };
 
@@ -153,39 +171,47 @@ const BookProduct = () => {
           daysAdded++; // Only count non-booked dates
         }
       }
-
       // If no booked dates were encountered, reduce the end date by 1 day
       if (!hasBookedDate) {
         calculatedEndDate = addDays(calculatedEndDate, -1);
       }
-
       setEndDate(calculatedEndDate);
     }
   };
 
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${backendUrl}/api/admin/get-working-days`); // Change to your API URL
+        setData(response.data.workingDays);
+        console.log("the working days data is here", response.data)
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, [landPrice]);
+
   const handleLandSelection = (value) => {
-    const selectedNumber = Number(value);
-    
-    setLandPrice(value)
-    setLandPrice(selectedNumber);
-    
-    if (selectedNumber >= 10 && selectedNumber <= 15) setWorkingDays(1);
-    else if (selectedNumber >= 16 && selectedNumber <= 30) setWorkingDays(2);
-    else if (selectedNumber >= 31 && selectedNumber <= 45) setWorkingDays(3);
-    else if (selectedNumber >= 46) setWorkingDays(4);
-    else setWorkingDays(0); // Default case if not in the defined range
-  
+
+    setSpecificLandPrice(value)
+    setLandPrice(cropPrice);
+
+    const matchedData = data.find(
+      (item) => value >= item.startAcre && value <= item.endAcre
+    );
+
+    setWorkingDays(matchedData ? matchedData.workingDays : "No matching data found");
     setNumbers(Array.from({ length: selectedNumber }, (_, i) => i + 1));
-  
-    // Ensure you are using the latest startDate
-  
   };
 
   useEffect(() => {
     handleStartDateChange(startDate);
   }, [workingDays, startDate]); // Re-run whenever workingDays or startDate changes
-  
-  
+
+
 
   const formatDate = (date) => {
     if (!date) return "";
@@ -203,7 +229,7 @@ const BookProduct = () => {
           <h2 className="text-[30px] font-semibold  text-teal-600 border-b pb-2 mb-6">Book your Product</h2>
           <form
             className="grid grid-cols-1 gap-4"
-            onChange={calculateSubtotal} // Update calculation on every form change
+          // Update calculation on every form change
 
 
           >
@@ -256,23 +282,6 @@ const BookProduct = () => {
               )}
             </div>
 
-            {/* Land Price */}
-            {/* <div>
-              <label className="block mb-1 font-medium text-gray-700">
-                Select Land (Acres) <span className="text-red-500">*</span>
-              </label>
-              <select
-                className="w-full p-2 border rounded-lg"
-                value={landPrice}
-                onChange={(e) => handleLandSelection(e.target.value)}
-              >
-                <option value="">Select Land Range</option>
-                <option value="10 to 15">10 to 15</option>
-                <option value="16 to 30">16 to 30</option>
-                <option value="31 to 45">31 to 45</option>
-                <option value="46 to 60">46 to 60</option>
-              </select>
-            </div> */}
 
             {/* Specific Land Price */}
             <div>
@@ -280,7 +289,7 @@ const BookProduct = () => {
                 Specific Land (Acres) <span className="text-red-500">*</span>
               </label>
 
-              <select className="w-full p-2 border rounded-lg mt-4" onChange={(e)=>handleLandSelection(e.target.value)}>
+              <select className="w-full p-2 border rounded-lg mt-4" onChange={(e) => handleLandSelection(e.target.value)}>
                 <option value="">Select Specific Range</option>
                 {[...Array(100)].map((_, index) => (
                   <option key={index + 1} value={index + 1}>
@@ -390,7 +399,7 @@ const BookProduct = () => {
               <input
                 type="text"
                 className="w-full p-2 border rounded-lg"
-                value={`₹${landPrice * cropPrice}`}
+                value={`₹${specificLandPrice * cropPrice}`}
                 readOnly
               />
             </div>
@@ -422,7 +431,7 @@ const BookProduct = () => {
             <hr />
             <li className="flex justify-between">
               <span className="font-semibold text-gray-700 text-lg">Land:</span>
-              <span className="text-lg text-gray-900">{landPrice}</span>
+              <span className="text-lg text-gray-900">{specificLandPrice}</span>
             </li>
             <hr />
             <li className="flex justify-between">
@@ -432,7 +441,7 @@ const BookProduct = () => {
             <hr />
             <li className="flex justify-between">
               <span className="font-semibold text-gray-700 text-lg">Subtotal:</span>
-              <span className="text-lg text-gray-900">₹{landPrice * cropPrice}</span>
+              <span className="text-lg text-gray-900">₹{specificLandPrice * cropPrice}</span>
             </li>
             <hr />
           </ul>

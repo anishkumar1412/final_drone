@@ -48,9 +48,8 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
 
   return (
     <header
-      className={`shadow-md fixed w-full transition-all duration-300 z-50 ${
-        isNavbarScrolled ? "bg-gray-800 shadow-lg" : bgColor
-      }`}
+      className={`shadow-md fixed w-full transition-all duration-300 z-50 ${isNavbarScrolled ? "bg-gray-800 shadow-lg" : bgColor
+        }`}
     >
       <nav className="max-w-screen-xl mx-auto px-4 sm:px-6 flex justify-between items-center py-4">
         {/* Logo */}
@@ -84,10 +83,9 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `px-3 py-2 rounded-md text-sm font-medium transition-all ${
-                      isActive
-                        ? "text-blue-400 border-b-2 border-blue-400"
-                        : "text-white hover:text-gray-300"
+                    `px-3 py-2 rounded-md text-sm font-medium transition-all ${isActive
+                      ? "text-blue-400 border-b-2 border-blue-400"
+                      : "text-white hover:text-gray-300"
                     }`
                   }
                   onClick={handleLinkClick}
@@ -106,6 +104,13 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
                 className="text-white hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium"
               >
                 {user?.name || "Hi Profile "}
+                <img
+                  src={user?.image || "/default-profile.jpg"}
+                  alt="Profile"
+                  className="w-8 h-8  rounded-full inline-block ml-2"
+                />
+
+
               </button>
               {isProfileMenuOpen && (
                 <ul className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg">

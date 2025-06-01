@@ -1,12 +1,12 @@
 
 import express from 'express'
-import connectDB from './config/db.js'
 import bodyParser from 'body-parser'
 import authRoutes from './routes/authRoutes.js'
 import orderRoutes from './routes/bookingRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import connectCloudinary from './config/cloudinary.js'
 import reviewRoutes from './routes/Review.routes.js'
+
 
 
 import cors from 'cors'
@@ -20,7 +20,12 @@ connectCloudinary()
 const app = express();
 
 // Connect Database
-connectDB();
+
+import index from './models/index.js'
+
+
+
+// connectDB();
 
 // Middleware
 app.use(cors());

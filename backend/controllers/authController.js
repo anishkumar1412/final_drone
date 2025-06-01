@@ -1,86 +1,127 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import User from '../models/User.js'
-import Drone from '../models/drone.js';
+// import User from '../models/User.js'
+// import Drone from '../models/drone.js';
 import Booking from '../models/Booking.js';
-import Crop from '../models/cropModel.js';
+// import Crop from '../models/cropModel.js';
 import cloudinary from 'cloudinary'
-// Register a new user
+import db1 from '../models/index.js';
+
+
+// Sequelize model
+
+const User = db1.User
+const Drone = db1.Drone
+const Crop = db1.Crop
+
 const registerUser = async (req, res) => {
-  const { name, mobNumber, email, password, state, district, pin, villageName, role } = req.body;
+  const {
+    name,
+    mobNumber,
+    email,
+    password,
+    state,
+    district,
+    pin,
+    villageName,
+    role,
+    image
+  } = req.body;
 
   try {
-    let user = await User.findOne({ email });
+    // Check if user exists
+    const existingUser = await User.findOne({ where: { email } });
 
-    if (user) {
-      return res.status(400).json({ msg: "User already exists" });
+    if (existingUser) {
+      return res.status(400).json({ msg: 'User already exists' });
     }
 
-    user = new User({
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create new user
+    const newUser = await User.create({
       name,
       mobNumber,
       email,
-      password,
+      password: hashedPassword,
       state,
       district,
       pin,
       villageName,
-      role
+      role,
+      image
     });
 
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-
-    await user.save();
-
+    // Generate token
     const payload = {
       user: {
-        id: user._id,
+        id: newUser.id, // Sequelize uses `id` instead of `_id`
       },
     };
 
-    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" }, (err, token) => {
-      if (err) throw err;
-      res.status(201).json({ token, user });
-    });
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' },
+      (err, token) => {
+        if (err) throw err;
+        res.status(201).json({ token, user: newUser });
+      }
+    );
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send('Server Error');
   }
 };
+
+
+
 
 // Login a user
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
-  console.log(email)
 
   try {
-    let user = await User.findOne({ email });
+    // Find user by email
+    const user = await User.findOne({ where: { email } });
 
     if (!user) {
       return res.status(400).json({ msg: "Invalid credentials" });
     }
 
+    // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(400).json({ msg: "Invalid credentials" });
     }
 
+    // Create JWT payload
     const payload = {
       user: {
-        id: user._id,
+        id: user.id, // Sequelize uses `id`
       },
     };
 
-    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "30d" }, (err, token) => {
-      if (err) throw err;
+    // Sign JWT and respond
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" },
+      (err, token) => {
+        if (err) throw err;
 
-      console.log(user)
-      console.log("This is the token which is coming from the backend", token)
-      res.json({success:true,message:"hiii", token, user });
-    });
+        res.status(200).json({
+          success: true,
+          message: "Login successful",
+          token,
+          user
+        });
+      }
+    );
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server Error");
@@ -88,28 +129,36 @@ const loginUser = async (req, res) => {
 };
 
 
+
+// const getDroneData = async (req, res) => {
+
+//   try {
+
+//     const drones = await Drone.find()
+//     res.json({ success: true, drones })
+
+//   } catch (error) {
+//     res.json({ success: false, message: error })
+//   }
+// }
+
 const getDroneData = async (req, res) => {
-
   try {
-
-    const drones = await Drone.find()
-    res.json({ success: true, drones })
-
+    const drones = await Drone.findAll(); // Sequelize uses findAll instead of find
+    res.json({ success: true, drones });
   } catch (error) {
-    res.json({ success: false, message: error })
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
-}
+};
 const getCropData = async (req, res) => {
-
   try {
-
-    const crops = await Crop.find()
-    res.json({ success: true, crops })
-
+    const crops = await Crop.findAll();
+    res.json({ success: true, crops });
   } catch (error) {
-    res.json({ success: false, message: error })
+    res.json({ success: false, message: error.message });
   }
-}
+};
 
 
 const getUserBookings = async (req, res) => {

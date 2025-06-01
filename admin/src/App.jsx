@@ -7,7 +7,7 @@ import Sidebar from './components/Sidebar';
 import { Route, Routes } from 'react-router-dom';
 import Dashboard from './pages/Admin/Dashboard';
 import Appointment from './pages/Admin/Appointment';
-import AddDoctor from './pages/Admin/AddDoctor';
+import AddDoctor from './pages/Admin/AddDrone';
 import DroneList from './pages/Admin/DroneList';
 import { DoctorContext } from './context/DoctorContext';
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
@@ -30,13 +30,10 @@ import DroneOwner from './pages/Admin/DroneOwner';
 import ApprovedRefunds from './pages/Admin/ApprovedRefunds';
 import AddUser from './pages/Admin/AddAdmin';
 import AddAdmin from './pages/Admin/AddAdmin';
-<<<<<<< HEAD
 import AddWorkingDay from './pages/Admin/AddWorkingDay';
-=======
 import DeclinedRefunds from './pages/Admin/DeclinedRefund';
 import TodaysOrder from './pages/Admin/TodaysOrder';
 import PendingOrder from './pages/Admin/PendingOrders';
->>>>>>> e9b75aa619a66ddaa164ed8f53559f97860925f9
 
 
 function App() {

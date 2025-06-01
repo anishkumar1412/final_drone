@@ -1,11 +1,88 @@
 import { v2 as cloudinary } from 'cloudinary'
-import Drone from '../models/drone.js';
+// import Drone from '../models/drone.js';
 import Booking from '../models/Booking.js';
 import jwt from 'jsonwebtoken'
 import mongoose from 'mongoose';
-import Crop from '../models/cropModel.js';
+// import Crop from '../models/cropModel.js';
 import { Admin } from '../models/Admin.js';
 import bcrypt from 'bcryptjs'
+// import WorkingDay from '../models/WorkingDay.js'
+
+import db1 from '../models/index.js';
+
+
+const Drone = db1.Drone
+const Crop = db1.Crop
+const WorkingDay = db1.WorkingDay
+
+// module.exports = {  };
+
+// const addDrone = async (req, res) => {
+//   try {
+//     const {
+//       model, range, speed, weight, price, district, state, owner, propeller, arms,
+//       motor, lGear, nozzle, nutBold, bableBare, lnkey, waterPump, pipeQty, charger,
+//       chargerCable, chargerPcable, extaintionBoard, battery, transmeterAndReciever
+//     } = req.body;
+
+//     const imageFile = req.file;
+
+//     console.log({
+//       model, range, speed, weight, price, district, state, owner, propeller, arms,
+//       motor, lGear, nozzle, nutBold, bableBare, lnkey, waterPump, pipeQty, charger,
+//       chargerCable, chargerPcable, extaintionBoard, battery, transmeterAndReciever
+//     }, imageFile);
+
+//     // Check for missing data
+//     if (!model || !range || !speed || !weight || !price || !district || !state || !owner ||
+//       !propeller || !arms || !motor || !lGear || !nozzle || !nutBold || !bableBare || !lnkey ||
+//       !waterPump || !pipeQty || !charger || !chargerCable || !chargerPcable ||
+//       !extaintionBoard || !battery || !transmeterAndReciever) {
+//       return res.json({ success: false, message: "Missing Details" });
+//     }
+
+//     // Upload image to Cloudinary
+//     const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
+//     const imageUrl = imageUpload.secure_url;
+
+//     const droneData = {
+//       model,
+//       range,
+//       speed,
+//       weight,
+//       price,
+//       district,
+//       state,
+//       owner,
+//       propeller,
+//       arms,
+//       motor,
+//       lGear,
+//       nozzle,
+//       nutBold,
+//       bableBare,
+//       lnkey,
+//       waterPump,
+//       pipeQty,
+//       charger,
+//       chargerCable,
+//       chargerPcable,
+//       extaintionBoard,
+//       battery,
+//       transmeterAndReciever,
+//       image: imageUrl,
+//     };
+
+//     const newDrone = new Drone(droneData);
+//     await newDrone.save();
+
+//     res.json({ success: true, message: "Drone Added Successfully" });
+//   } catch (error) {
+//     console.log(error);
+//     res.json({ success: false, message: error.message });
+//   }
+// };
+
 const addDrone = async (req, res) => {
   try {
     const {
@@ -16,25 +93,21 @@ const addDrone = async (req, res) => {
 
     const imageFile = req.file;
 
-    console.log({
-      model, range, speed, weight, price, district, state, owner, propeller, arms,
-      motor, lGear, nozzle, nutBold, bableBare, lnkey, waterPump, pipeQty, charger,
-      chargerCable, chargerPcable, extaintionBoard, battery, transmeterAndReciever
-    }, imageFile);
-
-    // Check for missing data
-    if (!model || !range || !speed || !weight || !price || !district || !state || !owner ||
+    if (
+      !model || !range || !speed || !weight || !price || !district || !state || !owner ||
       !propeller || !arms || !motor || !lGear || !nozzle || !nutBold || !bableBare || !lnkey ||
       !waterPump || !pipeQty || !charger || !chargerCable || !chargerPcable ||
-      !extaintionBoard || !battery || !transmeterAndReciever) {
-      return res.json({ success: false, message: "Missing Details" });
+      !extaintionBoard || !battery || !transmeterAndReciever || !imageFile
+    ) {
+      return res.status(400).json({ success: false, message: "Missing Details" });
     }
 
     // Upload image to Cloudinary
-    const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
-    const imageUrl = imageUpload.secure_url;
+    const uploaded = await cloudinary.uploader.upload(imageFile.path, {
+      resource_type: "image",
+    });
 
-    const droneData = {
+    const drone = await Drone.create({
       model,
       range,
       speed,
@@ -59,31 +132,27 @@ const addDrone = async (req, res) => {
       extaintionBoard,
       battery,
       transmeterAndReciever,
-      image: imageUrl,
-    };
+      image: uploaded.secure_url,
+      bookings: [], // Default empty if you're using JSON
+    });
 
-    const newDrone = new Drone(droneData);
-    await newDrone.save();
-
-    res.json({ success: true, message: "Drone Added Successfully" });
+    res.status(201).json({ success: true, message: "Drone added successfully", drone });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
+
 const addCrop = async (req, res) => {
   try {
-    const {cropName ,cropPerAcer } = req.body;
-
+    const { cropName, cropPerAcer } = req.body;
     const imageFile = req.file;
 
-    console.log({
-       cropName,cropPerAcer
-    }, imageFile);
+    console.log({ cropName, cropPerAcer }, imageFile);
 
-    // Check for missing data
-    if (!cropName || !cropPerAcer) {
+    // Check for missing fields
+    if (!cropName || !cropPerAcer || !imageFile) {
       return res.json({ success: false, message: "Missing Details" });
     }
 
@@ -91,17 +160,16 @@ const addCrop = async (req, res) => {
     const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
     const imageUrl = imageUpload.secure_url;
 
-    const cropData = {
-      cropName,cropPerAcer,
+    // Create new crop entry
+    const newCrop = await Crop.create({
+      cropName,
+      cropPerAcer,
       image: imageUrl,
-    };
+    });
 
-    const newCrop = new Crop(cropData);
-    await newCrop.save();
-
-    res.json({ success: true, message: "Crop Added Successfully" });
+    res.json({ success: true, message: "Crop Added Successfully", crop: newCrop });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: error.message });
   }
 };
@@ -392,6 +460,7 @@ const updateCoPilot = async (req,res) => {
       booking.copilotName = coPilotName || booking.copilotName;
       booking.copilotConfirm = false;
       booking.copilotCancelled = false;
+      booking.orderConfirmed = false;
     }
 
     await booking.save();
@@ -404,4 +473,42 @@ const updateCoPilot = async (req,res) => {
 }
 
 
-export { addDrone, getAllBookings, loginAdmin, adminCancelBooking, removeDrone,changeAvailability,addCrop,removeCrop,confirmOrder ,updatePilot,updateCoPilot}
+const addWorkingDays = async (req, res) => {
+  try {
+    const newEntry = await WorkingDay.create(req.body);
+    res.status(201).json({ success: true, newEntry });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to save data" });
+  }
+};
+
+
+
+const getWorkingDays = async (req, res) => {
+  try {
+    const workingDays = await WorkingDay.findAll();
+    res.json({ success: true, workingDays });
+  } catch (error) {
+    console.error("Error fetching working days:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+const deleteWorkingDay = async (req,res) => {
+  try {
+    const { id } = req.params;
+    const deletedItem = await WorkingDay.findByIdAndDelete(id);
+    
+    if (!deletedItem) {
+        return res.status(404).json({ message: "Working day not found" });
+    }
+
+    res.json({success:true, message: "Working day deleted successfully" });
+} catch (error) {
+    console.error("Error deleting working day:", error);
+    res.status(500).json({ success:false, message: "Server error" });
+}
+}
+
+export { addDrone, getAllBookings, loginAdmin, adminCancelBooking, removeDrone,changeAvailability,addCrop,removeCrop,confirmOrder ,updatePilot,updateCoPilot, addWorkingDays,getWorkingDays , deleteWorkingDay}
