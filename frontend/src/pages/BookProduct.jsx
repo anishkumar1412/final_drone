@@ -59,11 +59,7 @@ const BookProduct = () => {
   // Logic to automatically set working days based on land selection
 
   const handleBooked = async (e) => {
-    e.preventDefault(); // Prevent form from submitting and refreshing the page
-
-
-
-    console.log(subtotal)
+    e.preventDefault();
 
     if (subtotal < 500) {
       alert("Minimum ₹500 required to book the product");
@@ -71,6 +67,39 @@ const BookProduct = () => {
     }
 
     try {
+      // Check if required fields are present
+      if (
+        !crop || !landPrice || !specificLandPrice || !workingDays ||
+        !startDate || !endDate || !villagePanchayat || !pinCode ||
+        !drone || !drone._id || !drone.image
+      ) {
+        const missingFields = [];
+
+        if (!crop?.trim()) missingFields.push("Crop");
+        if (!landPrice) missingFields.push("Land Price");
+        if (!specificLandPrice) missingFields.push("Specific Land Price");
+        if (!workingDays) missingFields.push("Working Days");
+        if (!startDate) missingFields.push("Start Date");
+        if (!endDate) missingFields.push("End Date");
+        if (!villagePanchayat?.trim()) missingFields.push("Village Panchayat");
+        if (!pinCode) missingFields.push("Pin Code");
+
+        if (!drone || typeof drone !== 'object') {
+          missingFields.push("Drone (full object)");
+        } else {
+          if (!drone.id) missingFields.push("Drone ID");
+          if (!drone.image) missingFields.push("Drone Image");
+        }
+
+        if (missingFields.length > 0) {
+          console.log("Detected missing fields:", missingFields); // ✅ log to dev tools
+          alert("Please fill in the following fields:\n" + missingFields.join(", "));
+          return;
+        }
+
+      }
+
+
       const bookingData = {
         crop,
         landPrice,
@@ -79,14 +108,16 @@ const BookProduct = () => {
         subtotal,
         villagePanchayat,
         pinCode,
-        cropImage, // optional field; you can remove if backend doesn't use it
         startDate: formatDate(startDate),
         endDate: formatDate(endDate),
-        droneId: drone._id,
+        droneId: drone.id,
         droneImg: drone.image,
         droneName: drone.model,
 
-        // Add backend-expected fields with default or null values
+        // Optional field (if backend doesn't need it, remove it)
+        cropImage,
+
+        // Default backend expected fields
         pilot: null,
         copilot: null,
         pilotName: null,
@@ -94,7 +125,7 @@ const BookProduct = () => {
         pilotMobile: null,
         copilotMobile: null,
         workCompleted: false,
-        pilotConfirm: false,  // ✅ fixed typo from "poliotConfirm"
+        pilotConfirm: false,
         copilotConfirm: false,
         orderConfirmed: false,
         pilotCancelled: false,
@@ -102,15 +133,13 @@ const BookProduct = () => {
         total: 0,
         done: 0,
         pending: 0,
-        workProgress: {},
-        progress: false,
+        workProgress: [],   // ✅ backend expects a string
+        progress: 0,        // ✅ backend expects a number
         farmerVerifiedComplete: false,
-        cropPrice: 0
+        cropPrice
       };
 
-
-      console.log("it is running")
-      console.log(bookingData)
+      console.log("Booking data to send:", bookingData);
 
       const response = await axios.post(`${backendUrl}/api/booking/book`, bookingData, {
         headers: {
@@ -121,15 +150,17 @@ const BookProduct = () => {
 
       if (response.data.success) {
         toast.success("Booking successful!");
-        navigate('/my-order')
+        navigate('/my-order');
       } else {
         toast.error(response.data.message || "Booking failed.");
       }
+
     } catch (error) {
       console.error("Booking error:", error);
       toast.error("Something went wrong. Please try again.");
     }
   };
+
 
 
 
@@ -145,39 +176,36 @@ const BookProduct = () => {
   };
 
 
-  const handleStartDateChange = (date) => {
-    setIsCalendarOpen(false);
-    setStartDate(date);
+const handleStartDateChange = (date) => {
+  setIsCalendarOpen(false);
+  setStartDate(date);
 
-    if (workingDays > 0) {
-      let calculatedEndDate = new Date(date);
-      let daysAdded = 0;
-      let hasBookedDate = false; // Flag to track if any booked date exists in range
+  if (workingDays > 0) {
+    let calculatedEndDate = new Date(date);
+    let daysAdded = 1;  // Start counting from 1 because start date counts as day 1
 
-      while (daysAdded < workingDays) {
-        // Move to the next day
-        calculatedEndDate = addDays(calculatedEndDate, 1);
+    const bookingsArray = Array.isArray(drone.bookings) ? drone.bookings : [];
 
-        // Check if the calculatedEndDate is within any booked range
-        const isBooked = drone.bookings.some((booking) => {
-          const bookingStart = new Date(booking.startDate);
-          const bookingEnd = new Date(booking.endDate);
-          return calculatedEndDate >= bookingStart && calculatedEndDate <= bookingEnd;
-        });
+    while (daysAdded < workingDays) {
+      calculatedEndDate = addDays(calculatedEndDate, 1);
 
-        if (isBooked) {
-          hasBookedDate = true;
-        } else {
-          daysAdded++; // Only count non-booked dates
-        }
+      const isBooked = bookingsArray.some((booking) => {
+        const bookingStart = new Date(booking.startDate);
+        const bookingEnd = new Date(booking.endDate);
+        return calculatedEndDate >= bookingStart && calculatedEndDate <= bookingEnd;
+      });
+
+      if (!isBooked) {
+        daysAdded++;
       }
-      // If no booked dates were encountered, reduce the end date by 1 day
-      if (!hasBookedDate) {
-        calculatedEndDate = addDays(calculatedEndDate, -1);
-      }
-      setEndDate(calculatedEndDate);
     }
-  };
+
+    setEndDate(calculatedEndDate);
+  }
+};
+
+
+
 
 
   useEffect(() => {
@@ -332,24 +360,28 @@ const BookProduct = () => {
                 <DatePicker
                   inline
                   minDate={new Date()}
-                  excludeDates={drone.bookings
-                    .map((booking) => {
-                      const start = new Date(booking.startDate);
-                      const end = new Date(booking.endDate);
-                      const dates = [];
-                      while (start <= end) {
-                        dates.push(new Date(start));
-                        start.setDate(start.getDate() + 1);
-                      }
-                      return dates;
-                    })
-                    .flat()}
+                  excludeDates={Array.isArray(drone?.bookings)
+                    ? drone.bookings
+                      .map((booking) => {
+                        const start = new Date(booking.startDate);
+                        const end = new Date(booking.endDate);
+                        const dates = [];
+                        while (start <= end) {
+                          dates.push(new Date(start));
+                          start.setDate(start.getDate() + 1);
+                        }
+                        return dates;
+                      })
+                      .flat()
+                    : []
+                  }
                   dateFormat="yyyy-MM-dd"
                   selected={startDate}
                   onChange={handleStartDateChange}
                   calendarClassName="custom-calendar"
                 />
               )}
+
             </div>
 
             {/* Book Date To */}

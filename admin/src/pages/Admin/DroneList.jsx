@@ -5,7 +5,7 @@ import { AdminContext } from '../../context/AdminContext';
 function DroneList() {
   const { drones, removeDrone, updateDroneAvailability } = useContext(AdminContext);
   const [selectedDrone, setSelectedDrone] = useState(null);
-  const {backendUrl} = useContext(AdminContext)
+  const {backendUrl,aToken,permissions,token} = useContext(AdminContext)
 
   const handleAvailabilityChange = async (droneId, currentAvailability) => {
     try {
@@ -16,7 +16,21 @@ function DroneList() {
       console.error("Error updating availability:", error);
     }
   };
+  // const token = localStorage.getItem("aToken") || localStorage.getItem("dToken");
 
+  // ✅ Check permission
+  const hasAccess = aToken || permissions.includes("Total Drones");
+
+  if (!hasAccess) {
+    // Option 1: Show nothing
+    return null;
+
+    // Option 2: Show unauthorized message
+    // return <div className="text-red-600 p-4 font-semibold">Unauthorized: You do not have permission to view this page.</div>;
+
+    // Option 3: Redirect to unauthorized page
+    // return <Navigate to="/unauthorized" />;
+  }
   return (
     <div className='m-5 max-h-[90vh] overflow-y-auto'>
       <h1 className='text-2xl font-semibold mb-4'>All Drones</h1>

@@ -9,7 +9,7 @@ function AddWorkingDay() {
     const [workingDays, setWorkingDays] = useState("");
     const [workingDaysList, setWorkingDaysList] = useState([]);
 
-    const { backendUrl, aToken } = useContext(AdminContext);
+    const { backendUrl, aToken,token } = useContext(AdminContext);
 
     // Fetch previously saved working days when the component mounts
     useEffect(() => {
@@ -26,7 +26,7 @@ function AddWorkingDay() {
         };
 
         fetchWorkingDays();
-    }, [backendUrl, aToken]); // Runs once when the component mounts
+    }, [backendUrl, token]); // Runs once when the component mounts
 
     const handleAddWorkingDay = async () => {
         if (!startAcre || !endAcre || !workingDays) {
@@ -42,7 +42,7 @@ function AddWorkingDay() {
 
         try {
             const { data } = await axios.post(`${backendUrl}/api/admin/working-days`, newEntry, {
-                headers: { Authorization: `Bearer ${aToken}` },
+                headers: { Authorization: `Bearer ${token}` },
             });
 
             if (data.success) {
@@ -94,7 +94,7 @@ function AddWorkingDay() {
                         {},
 
                         {
-                        headers: { Authorization: `Bearer ${aToken}` },
+                        headers: { Authorization: `Bearer ${token}` },
                     });
 
                     if(data.success){

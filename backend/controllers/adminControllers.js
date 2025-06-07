@@ -1,6 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary'
 // import Drone from '../models/drone.js';
-import Booking from '../models/Booking.js';
+// import Booking from '../models/Booking.js';
 import jwt from 'jsonwebtoken'
 import mongoose from 'mongoose';
 // import Crop from '../models/cropModel.js';
@@ -14,6 +14,7 @@ import db1 from '../models/index.js';
 const Drone = db1.Drone
 const Crop = db1.Crop
 const WorkingDay = db1.WorkingDay
+const Booking = db1.Booking
 
 // module.exports = {  };
 
@@ -247,21 +248,35 @@ export const getAllAdmins = async (req, res) => {
 };
 
 
+// const getAllBookings = async (req, res) => {
+//   try {
+//     const allBooking = await Booking.find({}); // Await the query result
+
+//     if (allBooking.length === 0) {  // Check if no bookings exist
+//       return res.json({ success: false, message: "No Booking Available" });
+//     }
+
+//     res.json({ success: true, allBooking }); // Send only plain objects
+//   } catch (error) {
+//     console.error("Error fetching bookings:", error);
+//     res.status(500).json({ success: false, message: "Server Error" });
+//   }
+// };
+
 const getAllBookings = async (req, res) => {
   try {
-    const allBooking = await Booking.find({}); // Await the query result
+    const allBooking = await db1.Booking.findAll();
 
-    if (allBooking.length === 0) {  // Check if no bookings exist
+    if (allBooking.length === 0) {
       return res.json({ success: false, message: "No Booking Available" });
     }
 
-    res.json({ success: true, allBooking }); // Send only plain objects
+    res.json({ success: true, allBooking });
   } catch (error) {
     console.error("Error fetching bookings:", error);
-    res.status(500).json({ success: false, message: "Server Error" });
-  }
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
 };
-
 
 const adminCancelBooking = async (req, res) => {
   try {
@@ -394,22 +409,28 @@ const changeAvailability = async (req,res)=>{
 
 }
 
-const confirmOrder = async (req,res)=>{
-   const {id} = req.body
-   try {
-     const booking = await Booking.findById(id)
-     if(!booking){
-      return res.json({success:false,message:'Booking not found'})
-     }
+ // Adjust the path to your models
 
-     booking.orderConfirmed = true
-     await booking.save()
+const confirmOrder = async (req, res) => {
+  const { id } = req.body;
 
-     res.json({success:true,message:'Order confirmed successfully'})
-   } catch (error) {
-     console.log(error)
-   }
-}
+  try {
+    const booking = await Booking.findByPk(id);
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+
+    booking.orderConfirmed = true;
+    await booking.save();
+
+    return res.status(200).json({ success: true, message: 'Order confirmed successfully' });
+  } catch (error) {
+    console.error("Error confirming order:", error);
+    return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
 
 // upadate pilot
 

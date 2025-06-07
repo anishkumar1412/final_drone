@@ -10,7 +10,7 @@ const Refund = () => {
   const [selectedRefund, setSelectedRefund] = useState(null);
   const [refundStatuses, setRefundStatuses] = useState({});
   const [SanctionedRefundAmount, setSanctionedRefundAmount] = useState(0);
-  const {backendUrl} = useContext(AdminContext)
+  const {backendUrl,token,dtoken} = useContext(AdminContext)
 
   useEffect(() => {
     const initialStatuses = refunds.reduce((acc, refund) => {
@@ -55,8 +55,12 @@ const Refund = () => {
             status,
             adminMessage,
             SanctionedRefundAmount,
-          });
-  
+          }, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+        
           if (response.data.success) {
             Swal.fire({
               title: "Success!",

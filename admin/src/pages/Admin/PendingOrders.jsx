@@ -2,21 +2,27 @@ import React, { useContext, useEffect, useState } from "react";
 import { AdminContext } from "../../context/AdminContext";
 import axios from "axios";
 import Swal from "sweetalert2";
+import Modal from "react-modal"
+import * as XLSX from "xlsx";
+
+Modal.setAppElement('#root')
 
 function PendingOrder() {
-    const { aToken, bookings, getAllBokings, cancelAppointment, formatDate, allUsers, updatePilot, updateCoPilot } = useContext(AdminContext);
-    
-    console.log(allUsers);
-    
-    const pilots = allUsers.filter((user) => user.role === "Pilot");
-    const copilots = allUsers.filter((user) => user.role === "Co Pilot");
-    
-    const [editRow, setEditRow] = useState(null);
-    const [editCopilotRow, setEditCopilotRow] = useState(null); // Track which row is in edit mode
-    const { backendUrl } = useContext(AdminContext)
-    
-    const [selectedItemId, setSelectedItemId] = useState(null);
-    const today = new Date().toISOString().split('T')[0];
+  const { aToken,token, bookings, getAllBokings, cancelAppointment, formatDate, allUsers, updatePilot, updateCoPilot } = useContext(AdminContext);
+
+  console.log(allUsers);
+
+  const pilots = allUsers.filter((user) => user.role === "Pilot");
+  const copilots = allUsers.filter((user) => user.role === "Co Pilot");
+
+  const [editRow, setEditRow] = useState(null);
+  const [editCopilotRow, setEditCopilotRow] = useState(null); // Track which row is in edit mode
+  const { backendUrl } = useContext(AdminContext)
+  const {modalIsOpen, setModalIsOpen} = useContext(AdminContext);
+  const {cancellationReason, setCancellationReason} = useContext(AdminContext);
+  const {customMessage, setCustomMessage} = useContext(AdminContext);
+  const {selectedDrone, setSelectedDrone} = useContext(AdminContext);
+  const [selectedItemId, setSelectedItemId] = useState(null);
 
   const toggleDetails = (itemId) => {
     setSelectedItemId(selectedItemId === itemId ? null : itemId);
@@ -26,6 +32,43 @@ function PendingOrder() {
     getAllBokings();
   }, []);
 
+  const openModal = (drone) => {
+    setSelectedDrone(drone);
+    console.log("Drone data is ", drone)
+    setModalIsOpen(true);
+  };
+  const handleDownloadExcel = () => {
+    const formattedData = bookings.map((item) => ({
+      OrderID: item._id,
+      Drone: item.droneName || '',              
+      District: item.villagePanchayat || '',
+      Date: item.createdAt ? formatDate(item.createdAt) : '',
+      Name: item.user?.name || '',
+      Price: item.subtotal || '',
+      Pilot: item.pilotName || '',
+      Copilot: item.copilotName || '',
+      Target: item.specificLandPrice || '',
+      OrderConfirmed: item.orderConfirmed ? "Yes" : "No",
+      Cancelled: item.cancelled ? "Yes" : "No",
+      CancelledBy: item.cancelledBy || '',
+      WorkCompleted: item.workCompleted ? "Yes" : "No",
+      FarmerVerifiedComplete: item.farmerVerifiedComplete ? "Yes" : "No",
+      WorkProgress: item.workProgress?.map(w => `${formatDate(w.date)} - ${w.done}A`).join(", ") || 'N/A',
+    }));
+  
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Bookings");
+  
+    XLSX.writeFile(workbook, "booking_data.xlsx");
+  };
+  // Close the modal
+  const closeModal = () => {
+    setModalIsOpen(false);
+    setSelectedDrone(null);
+    setCancellationReason("");
+    setCustomMessage("");
+  };
   const [selectedPilots, setSelectedPilots] = useState({});
   const [selectedCopilots, setSelectedCopilots] = useState({});
 
@@ -52,7 +95,7 @@ function PendingOrder() {
       const { data } = await axios.post(
         `${backendUrl}/api/admin/assign-pilots/${bookingId}`,
         { pilotId, copilotId, pilotName, copilotName },
-        { headers: { Authorization: `Bearer ${aToken}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (data.success) {
@@ -84,7 +127,7 @@ function PendingOrder() {
 
       if (pilotConfirm && copilotConfirm) {
         const { data } = await axios.post(`${backendUrl}/api/admin/confirmOrder`, { id }, {
-          headers: { Authorization: `Bearer ${aToken}` }
+          headers: { Authorization: `Bearer ${token}` }
         });
 
         if (data.success) {
@@ -142,9 +185,16 @@ function PendingOrder() {
 
   return (
     <div className="w-full m-5">
-      <p className="mb-3 text-lg font-medium">Pending Bookings</p>
+      <p className="mb-3 text-lg font-medium">Pending Orders</p>
 
       <div className="bg-white border rounded text-sm min-h-[60vh] max-h-[80vh] overflow-y-scroll">
+      <button
+  onClick={handleDownloadExcel}
+  className="bg-blue-600 text-white px-4 py-2 mb-4 rounded hover:bg-blue-700"
+>
+  Download Excel
+</button>
+
         <table className="min-w-full bg-white border border-gray-200">
           <thead>
             <tr className="bg-gray-100 border-b">
@@ -163,7 +213,7 @@ function PendingOrder() {
             </tr>
           </thead>
           <tbody>
-            {bookings.filter((item) => !item.pilot && !item.copilot && !item.cancelled) .slice().reverse().map((item, i) => (
+            {bookings.filter(item => item.progress === false && item.cancelled!=true && item.pilotName !=null && item.copilotConfirm === true && item.pilotConfirm === true).slice().reverse().map((item, i) => (
               <tr key={item._id} className="border-b hover:bg-gray-50">
                 <td className="py-3 px-4 border-r">{i + 1}</td>
                 <td className="py-3 px-4 border-r">
@@ -180,77 +230,7 @@ function PendingOrder() {
 
                 {/* pilot field  */}
 
-                {/* <td className="py-3 px-4 border-r">
-                  {editRow === item._id || !item.pilotName ? ( // Check if in edit mode or new booking
-                    <div className="flex flex-col items-start">
-                      <select
-                        className="border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        value={selectedPilots[item._id] || ""}
-                        onChange={(e) =>
-                          setSelectedPilots((prev) => ({ ...prev, [item._id]: e.target.value }))
-                        }
-                      >
-                        <option value="">Pilot</option>
-                        {pilots.map((pilot) => (
-                          <option key={pilot._id} value={pilot._id}>
-                            {pilot.name}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        className="bg-green-500 text-white text-xs p-1 rounded-sm mt-2"
-                        onClick={() => {
-                          handleEditPilot(item._id)
-                        }}
-                      >
-                        Save
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="relative p-3 bg-gray-100 rounded-md shadow-md">
-                      <p className="text-gray-700 font-medium">
-                        Assigned to <br /> <span className="font-semibold">{item.pilotName}</span>
-                      </p>
-
-                      <div className="flex items-center gap-2 mt-2">
-                        {item.pilotConfirm ? <>
-                          <span className="bg-green-500 text-white px-3 py-1 rounded-md text-sm">
-                            Confirmed
-                          </span>
-                          <button
-                            className="bg-gray-600 text-white text-xs px-2 py-1 rounded-md hover:bg-gray-700 ml-2"
-                            onClick={() => setEditRow(item._id)}
-                          >
-                            Edit
-                          </button>
-
-                        </> : item.pilotCancelled ? (
-                          <>
-                            <span className="bg-red-500 text-white px-3 py-1 rounded-md text-sm">
-                              Cancelled
-                            </span>
-                            <button
-                              className="bg-gray-600 text-white text-xs px-2 py-1 rounded-md hover:bg-gray-700 ml-2"
-                              onClick={() => setEditRow(item._id)}
-                            >
-                              Edit
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-yellow-600 font-medium">Waiting for Confirmation</span>
-                            <button
-                              className="absolute top-2 right-2 bg-gray-600 text-white text-xs px-2 py-1 rounded-md hover:bg-gray-700"
-                              onClick={() => setEditRow(item._id)}
-                            >
-                              Edit
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </td> */}
+                
 
                 <td className="py-3 px-4 border-r">
                   {item.cancelled ? ( // Check if booking is cancelled
@@ -334,80 +314,7 @@ function PendingOrder() {
 
 
 
-                {/* Copilot field  */}
-
-                {/* <td className="py-3 px-4 border-r">
-                  {editCopilotRow === item._id || !item.copilotName ? ( // Check if in edit mode or new booking
-                    <div className="flex flex-col items-start">
-                      <select
-                        className="border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        value={selectedCopilots[item._id] || ""}
-                        onChange={(e) =>
-                          setSelectedCopilots((prev) => ({ ...prev, [item._id]: e.target.value }))
-                        }
-                      >
-                        <option value="">Copilot</option>
-                        {copilots.map((copilot) => (
-                          <option key={copilot._id} value={copilot._id}>
-                            {copilot.name}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        className="bg-green-500 text-white text-xs p-1 rounded-sm mt-2"
-                        onClick={() => {
-                          handleEditcoPilot(item._id)
-                        }}
-                      >
-                        Save
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="relative p-3 bg-gray-100 rounded-md shadow-md">
-                      <p className="text-gray-700 font-medium">
-                        Assigned to <br /> <span className="font-semibold">{item.copilotName}</span>
-                      </p>
-
-                      <div className="flex items-center gap-2 mt-2">
-                        {item.copilotConfirm ? (
-                          <>
-                            <span className="bg-green-500 text-white px-3 py-1 rounded-md text-sm">
-                              Confirmed
-                            </span>
-                            <button
-                              className="bg-gray-600 text-white text-xs px-2 py-1 rounded-md hover:bg-gray-700 ml-2"
-                              onClick={() => setEditCopilotRow(item._id)}
-                            >
-                              Edit
-                            </button>
-                          </>
-                        ) : item.copilotCancelled ? (
-                          <>
-                            <span className="bg-red-500 text-white px-3 py-1 rounded-md text-sm">
-                              Cancelled
-                            </span>
-                            <button
-                              className="bg-gray-600 text-white text-xs px-2 py-1 rounded-md hover:bg-gray-700 ml-2"
-                              onClick={() => setEditCopilotRow(item._id)}
-                            >
-                              Edit
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-yellow-600 font-medium">Waiting for Confirmation</span>
-                            <button
-                              className="absolute top-2 right-2 bg-gray-600 text-white text-xs px-2 py-1 rounded-md hover:bg-gray-700"
-                              onClick={() => setEditCopilotRow(item._id)}
-                            >
-                              Edit
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </td> */}
+              
 
                 <td className="py-3 px-4 border-r">
                   {item.cancelled ? ( // Check if booking is cancelled
@@ -520,14 +427,49 @@ function PendingOrder() {
                           </button>
                       }
                       <button className="bg-red-700 text-white px-2 py-1 rounded-md "
-                        onClick={() => cancelAppointment(item)}
+                        onClick={() => openModal(item)}
                       >Cancel</button>
                     </div>
                       :
                       <button className="bg-red-700 text-white px-2 py-1 rounded-md ">Cancelled</button>
                   }
                 </td>
-
+                <Modal
+          isOpen={modalIsOpen}
+          onRequestClose={closeModal}
+          className="bg-white p-6 rounded-lg shadow-xl max-w-lg mx-auto mt-20"
+          overlayClassName="fixed inset-0  flex items-center justify-center"
+          ariaHideApp={false} 
+        >
+          <h2 className="text-xl font-semibold mb-4">Cancel Booking</h2>
+          <label className="block mb-2 text-gray-700">
+            Reason for Cancellation:
+          </label>
+          <select
+            className="w-full border p-2 rounded mb-3"
+            value={cancellationReason}
+            onChange={(e) => setCancellationReason(e.target.value)}
+          >
+            <option value="">Select a reason</option>
+            <option value="Change of Plan">Change of Plan</option>
+            <option value="Weather Conditions">Weather Conditions</option>
+            <option value="Technical Issues">Technical Issues</option>
+          </select>
+          <textarea
+            className="w-full border p-2 rounded mb-3"
+            placeholder="Additional message (optional)"
+            value={customMessage}
+            onChange={(e) => setCustomMessage(e.target.value)}
+          ></textarea>
+          <button
+            onClick={() => {cancelAppointment(selectedDrone); closeModal()}}
+        
+         
+            className="bg-red-500 text-white px-4 py-2 rounded"
+          >
+            Confirm Cancellation
+          </button>
+        </Modal>
 
                 {/* Aciton of work */}
 

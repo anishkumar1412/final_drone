@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 // import User from '../models/User.js'
 // import Drone from '../models/drone.js';
-import Booking from '../models/Booking.js';
+// import Booking from '../models/Booking.js';
 // import Crop from '../models/cropModel.js';
 import cloudinary from 'cloudinary'
 import db1 from '../models/index.js';
@@ -14,6 +14,7 @@ import db1 from '../models/index.js';
 const User = db1.User
 const Drone = db1.Drone
 const Crop = db1.Crop
+const Booking = db1.Booking
 
 const registerUser = async (req, res) => {
   const {
@@ -110,7 +111,7 @@ const loginUser = async (req, res) => {
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: "1h" },
+      { expiresIn: "1d" },
       (err, token) => {
         if (err) throw err;
 
@@ -161,36 +162,68 @@ const getCropData = async (req, res) => {
 };
 
 
+// const getUserBookings = async (req, res) => {
+//   try {
+//     const userId = req.user.user.id; // Extracted from auth middleware
+//     console.log(userId)
+
+//     if (!userId) {
+//       return res.status(400).json({ success: false, message: "User authentication failed." });
+//     }
+
+//     const bookings = await Booking.find({ "user._id": new mongoose.Types.ObjectId(userId) }).sort({ createdAt: -1 });
+
+
+
+//      console.log(bookings.map(b => ({ id: b._id, createdAt: b.createdAt })));
+
+
+//     if (!bookings.length) {
+//       return res.status(404).json({ success: false, message: "No bookings found for this user." });
+//     }
+
+//     res.status(200).json({ success: true, bookings });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: "Server error", error: error.message });
+//   }
+// };
+
+
 const getUserBookings = async (req, res) => {
   try {
-    const userId = req.user.user.id; // Extracted from auth middleware
-    console.log(userId)
-
+    const userId = req.user?.user?.id; // Assuming auth middleware attaches user info
     if (!userId) {
       return res.status(400).json({ success: false, message: "User authentication failed." });
     }
 
-    const bookings = await Booking.find({ "user._id": new mongoose.Types.ObjectId(userId) }).sort({ createdAt: -1 });
-
-  
-
-     console.log(bookings.map(b => ({ id: b._id, createdAt: b.createdAt })));
-
+    // Query bookings where user JSON field has the matching id
+    const bookings = await Booking.findAll({
+      where: {
+        'user.id': userId, // Assuming user info is saved as { id, name, ... } in Booking.user
+      },
+      order: [['createdAt', 'DESC']],
+    });
 
     if (!bookings.length) {
       return res.status(404).json({ success: false, message: "No bookings found for this user." });
     }
 
-    res.status(200).json({ success: true, bookings });
+    // Optional: log ids and creation dates
+    console.log(bookings.map(b => ({ id: b.id, createdAt: b.createdAt })));
+
+    return res.status(200).json({ success: true, bookings });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error", error: error.message });
+    console.error("Get user bookings error:", error);
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
+
+
 
 const getUserBookingById = async (req, res) => {
   try {
     const { orderId } = req.params;
-    
+
     // Fetch booking and populate drone details
     const order = await Booking.findById(orderId).populate("droneId");
 
@@ -205,7 +238,7 @@ const getUserBookingById = async (req, res) => {
         date: order.startDate,  // Assuming startDate is the order date
         productImage: order.droneImg,  // Using droneImg as productImage
         productName: order.droneId ? order.droneId.model : "Unknown",
-        subtotal:order.subtotal // Fetching model name from Drone
+        subtotal: order.subtotal // Fetching model name from Drone
       }
     });
   } catch (error) {
@@ -216,12 +249,15 @@ const getUserBookingById = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}, "-password"); // Exclude password field
+    const users = await User.findAll({
+      attributes: { exclude: ['password'] } // Exclude password field
+    });
     res.json({ users });
   } catch (error) {
     res.status(500).json({ message: "Error fetching users", error });
   }
 };
+
 
 const deleteUser = async (req, res) => {
   try {
@@ -239,130 +275,215 @@ const deleteUser = async (req, res) => {
 };
 const getProfile = async (req, res) => {
   try {
-   console.log(req.user)
-      const user = await User.findById(req.user.user.id).select('-password');
-      res.json({ success: true, user });
+    const userId = req.user?.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized access" });
+    }
+
+    // Find user by primary key and exclude password
+    const user = await User.findByPk(userId, {
+      attributes: { exclude: ['password'] },
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    return res.status(200).json({ success: true, user });
+
   } catch (error) {
-      console.error(error);
-      res.json({ success: false, message: error.message });
+    console.error("Get profile error:", error);
+    return res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };
 const updateProfile = async (req, res) => {
   try {
-      const { userId,name, mobNumber,email,state,district,pin, villageName } = req.body;
-      const imageFile = req.file;
-   
-    
-      console.log('Headers:', req.headers);
+    const { userId, name, mobNumber, email, state, district, pin, villageName } = req.body;
+    const imageFile = req.file;
 
-      if(!name || !mobNumber || !state ||!district ||!pin ||!villageName ||!email )
-      {
-          return res.json({success:false,message:"Data Missing"});
-      }
-      await User.findByIdAndUpdate(userId,{name,mobNumber,state,district,pin,villageName});
 
-      if(imageFile)
-      {
-          // upload image to cloudinary
-          const imageUpload = await cloudinary.uploader.upload(imageFile.path,{resource_type:"image"});
-          const imageUrl = imageUpload.secure_url;
-          await User.findByIdAndUpdate(userId,{image:imageUrl});
-      }
+    console.log('Headers:', req.headers);
 
-     
+    if (!name || !mobNumber || !state || !district || !pin || !villageName || !email) {
+      return res.json({ success: false, message: "Data Missing" });
+    }
+    await User.findByIdAndUpdate(userId, { name, mobNumber, state, district, pin, villageName });
 
-      res.json({ success: true, message: 'Profile Updated' });
+    if (imageFile) {
+      // upload image to cloudinary
+      const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
+      const imageUrl = imageUpload.secure_url;
+      await User.findByIdAndUpdate(userId, { image: imageUrl });
+    }
+
+
+
+    res.json({ success: true, message: 'Profile Updated' });
   } catch (error) {
-      console.error(error);
-      res.json({ success: false, message: error.message });
+    console.error(error);
+    res.json({ success: false, message: error.message });
   }
 };
-const getPilotTask = async (req,res) => {
+
+
+// const getPilotTask = async (req,res) => {
+//   try {
+//     const pilotId = req.user.user.id; // Get logged-in pilot's ID from token
+
+//     console.log("this is the pilot id ",pilotId)
+
+//     // Fetch bookings where the pilot matches the logged-in user
+//     const bookings = await Booking.find({ pilot: pilotId }).populate("user", "name email mobNumber"); // Populate user details
+
+
+//     res.status(200).json({ success: true, bookings });
+// } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ success: false, message: "Server error" });
+// }
+// }
+
+
+// Make sure Booking is properly imported
+
+const getPilotTask = async (req, res) => {
   try {
-    const pilotId = req.user.user.id; // Get logged-in pilot's ID from token
+    const userId = req.user?.user?.id;
 
-    console.log("this is the pilot id ",pilotId)
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized access" });
+    }
 
-    // Fetch bookings where the pilot matches the logged-in user
-    const bookings = await Booking.find({ pilot: pilotId }).populate("user", "name email mobNumber"); // Populate user details
-   
+    console.log("line no 344")
 
-    res.status(200).json({ success: true, bookings });
-} catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
-}
-}
-const getCoPilotTask = async (req,res) => {
-  try {
-    const copilotId = req.user.user.id; // Get logged-in pilot's ID from token
+    const pilotTasks = await Booking.findAll({
+      where: { pilot: String(userId) }, // Ensure consistent type with DB
+      order: [['createdAt', 'DESC']]
+    });
 
-    console.log("this is the pilot id ",copilotId)
+   console.log(pilotTasks)
 
-    // Fetch bookings where the pilot matches the logged-in user
-    const bookings = await Booking.find({ copilot: copilotId }).populate("user", "name email mobNumber"); // Populate user details
-   
-
-    res.status(200).json({ success: true, bookings });
-} catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
-}
-}
-
-
-const confirmCopilot = async (req,res)=>{
-  try {
-      const {id,name} = req.body;
-      console.log(name)
-      console.log(id)
-
-      const booking = await Booking.findById(id)
-
-      if(!booking){
-        return res.json({success:false,message:"Booking not found"})
-      }
-
-      if(name === 'pilot'){
-        booking.pilotConfirm = true;
-      }else{
-        booking.copilotConfirm = true;
-      }
-      await booking.save();
-
-      res.json({success:true,message:"Co-pilot confirmed"})
+    return res.status(200).json({ success: true, pilotTasks });
   } catch (error) {
-     console.log(error)
+    console.error("Get pilot tasks error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+
+
+
+
+
+// const getCoPilotTask = async (req,res) => {
+//   try {
+//     const copilotId = req.user.user.id; // Get logged-in pilot's ID from token
+
+//     console.log("this is the pilot id ",copilotId)
+
+//     // Fetch bookings where the pilot matches the logged-in user
+//     const bookings = await Booking.find({ copilot: copilotId }).populate("user", "name email mobNumber"); // Populate user details
+
+
+//     res.status(200).json({ success: true, bookings });
+// } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ success: false, message: "Server error" });
+// }
+// }
+
+const getCoPilotTask = async (req, res) => {
+  try {
+    const userId = req.user?.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized access" });
+    }
+
+    const copilotTasks = await Booking.findAll({
+      where: { copilot: String(userId) }, // Ensure type matches DB if copilot is stored as string
+      order: [['createdAt', 'DESC']]
+    });
+
+    return res.status(200).json({ success: true, copilotTasks });
+  } catch (error) {
+    console.error("Get copilot tasks error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+
+
+
+
+const confirmCopilot = async (req, res) => {
+  try {
+    const { id, name } = req.body;
+    console.log("Name:", name);
+    console.log("Booking ID:", id);
+
+    // Use Sequelize to find booking by primary key
+    const booking = await Booking.findByPk(id);
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    if (name === 'pilot') {
+      booking.pilotConfirm = true;
+    } else {
+      booking.copilotConfirm = true;
+    }
+
+    // Save the updated booking
+    await booking.save();
+
+    return res.status(200).json({ success: true, message: `${name === 'pilot' ? 'Pilot' : 'Co-pilot'} confirmed successfully.` });
+
+  } catch (error) {
+    console.error("Error confirming co-pilot:", error);
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+
+const pilotCancel = async (req, res) => {
+  try {
+    const { id, name } = req.body;
+    console.log(name)
+    console.log(id)
+
+    const booking = await Booking.findById(id)
+
+    if (!booking) {
+      return res.json({ success: false, message: "Booking not found" })
+    }
+
+    if (name === 'pilot') {
+      booking.pilotCancelled = true;
+    } else {
+      booking.copilotCancelled = true;
+    }
+    await booking.save();
+
+    res.json({ success: true, message: "Cancelled" })
+  } catch (error) {
+    console.log(error)
   }
 }
 
 
-const pilotCancel = async (req,res)=>{
-  try {
-      const {id,name} = req.body;
-      console.log(name)
-      console.log(id)
-
-      const booking = await Booking.findById(id)
-
-      if(!booking){
-        return res.json({success:false,message:"Booking not found"})
-      }
-
-      if(name === 'pilot'){
-        booking.pilotCancelled = true;
-      }else{
-        booking.copilotCancelled = true;
-      }
-      await booking.save();
-
-      res.json({success:true,message:"Cancelled"})
-  } catch (error) {
-     console.log(error)
-  }
-}
 
 
-
-
-export { registerUser, loginUser, getDroneData, getUserBookings, getUserBookingById, getCropData, getAllUsers, deleteUser, getProfile, updateProfile, getPilotTask ,getCoPilotTask,confirmCopilot,pilotCancel};
+export {
+  registerUser, loginUser, getDroneData, getUserBookings, getUserBookingById, getCropData, getAllUsers, deleteUser,
+  getProfile,
+  updateProfile, getPilotTask, getCoPilotTask, confirmCopilot, pilotCancel
+};

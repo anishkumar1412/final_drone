@@ -9,7 +9,7 @@ function AddCrop() {
     const [cropImg, setCropImg] = useState(null);
     const [cropName, setCropeName] = useState('');
     const [cropPerAcer,setCropPerAcer] = useState(0)
-    const {backendUrl} = useContext(AdminContext)
+    const {backendUrl,token} = useContext(AdminContext)
 
     const { crops,removeCrop } = useContext(AdminContext)
     console.log(crops)
@@ -43,6 +43,9 @@ function AddCrop() {
                 {
                     headers: {
                         'Content-Type': 'multipart/form-data',
+                        Authorization: `Bearer ${token}`,
+                            
+                          
                     },
                 }
             );

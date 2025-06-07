@@ -3,12 +3,13 @@ import { createContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
+
 export const AdminContext = createContext()
 
 const AdminContextProvider = (props) => {
 
     const [aToken, setAToken] = useState(localStorage.getItem('aToken') ? localStorage.getItem('aToken') : false)
-    const [doctors, setDoctors] = useState([])
+
     const [bookings, setBookings] = useState([])
     const [dashData, setDashData] = useState(false)
     const [reviews, setReviews] = useState([]);
@@ -22,18 +23,78 @@ const AdminContextProvider = (props) => {
     const [cancelledBookings, setCancelledBookings] = useState([]);
     const [allUsers, setAllUsers] = useState([])
     const [crops, setCrops] = useState(null)
-  const [sidebarVisible, setSidebarVisible] = useState(true); // <-- Sidebar toggle
-
+    const [modalIsOpen, setModalIsOpen] = useState(false);
+    const [cancellationReason, setCancellationReason] = useState("");
+    const [customMessage, setCustomMessage] = useState("");
+    const [selectedDrone, setSelectedDrone] = useState(null);
+    const [cancelledBy, setCancelledBy] = useState("");
+    const [sidebarVisible, setSidebarVisible] = useState(true);
 
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL
+    const [dtoken, setDtoken] = useState(localStorage.getItem("dToken"));
+    const [token, settoken] = useState(dtoken || aToken);
+  const [permissions, setPermissions] = useState([]);
+
+  useEffect(() => {
+    // Load token from localStorage on mount
+    const storedToken = localStorage.getItem("dToken");
+    if (storedToken) {
+      setDtoken(storedToken);
+      fetchUserPermissions(storedToken);
+      console.log("anish",permissions)
+      console.log("object")
+    }
+  }, []);
+  useEffect(() => {
+  const token = localStorage.getItem('aToken');
+  if (token) {
+    setAToken(token);
+  }
+}, []);
+useEffect(()=>{
+   const token = dtoken || aToken
+  settoken(token);
+},[])
+
+
+  const fetchUserPermissions = async (token) => {
+    try {
+      const { data } = await axios.get("http://localhost:9000/api/admin/me", {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+        console.log("Anish",data)
+  
+      console.log("User Permissions Response:", data);
+  
+      if (data.success) {
+        setPermissions(data.admin.access || []); 
+        console.log(data)// Ensure access is always an array
+      } else {
+        console.log("Error fetching permissions:", data.message);
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error("Failed to fetch permissions", error);
+  
+      // Handle errors correctly
+      const errorMessage = error.response?.data?.message || "Something went wrong";
+      toast.error(errorMessage);
+    }
+  };
+  
+  useEffect(() => {
+    console.log("✅ Permissions updated:", permissions);
+  }, [permissions]);
 
     const [drones, setDrones] = useState([])
     useEffect(() => {
         const fetchReviews = async () => {
             setLoading(true);
             try {
-                const { data } = await axios.get(`${backendUrl}/api/get-reviews`, { headers: { aToken } });
+                const { data } = await axios.get(`${backendUrl}/api/get-reviews`,{ headers: {
+                    Authorization: `Bearer ${token}`,
+                  },});
                 if (data.success) {
                     setLoading(false)
                     setReviews(data.reviews);
@@ -46,13 +107,17 @@ const AdminContextProvider = (props) => {
                 toast.error(error.response?.data.message || error.message);
             }
         };
-        if (aToken) fetchReviews();
-    }, [aToken])
+        if (token) fetchReviews();
+    }, [token])
     useEffect(() => {
         const fetchRefunds = async () => {
             setLoading(true);
             try {
-                const { data } = await axios.get(`${backendUrl}/api/get-refunds`, { headers: { aToken } });
+                const { data } = await axios.get(`${backendUrl}/api/get-refunds`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                    });
                 if (data.success) {
                     setLoading(false)
                     setRefunds(data.refunds);
@@ -66,13 +131,15 @@ const AdminContextProvider = (props) => {
                 toast.error(error.response?.data.message || error.message);
             }
         };
-        if (aToken) fetchRefunds();
-    }, [aToken])
+        if (token) fetchRefunds();
+    }, [token])
     useEffect(() => {
         const fetchComplains = async () => {
             setLoading(true);
             try {
-                const { data } = await axios.get(`${backendUrl}/api/get-complaints`, { headers: { aToken } });
+                const { data } = await axios.get(`${backendUrl}/api/get-complaints`, {headers: {
+                    Authorization: `Bearer ${token}`,
+                  },});
                 if (data.success) {
                     setLoading(false)
                     setComplaints(data.complaints);
@@ -86,13 +153,15 @@ const AdminContextProvider = (props) => {
                 toast.error(error.response?.data.message || error.message);
             }
         };
-        if (aToken) fetchComplains();
-    }, [aToken])
+        if (token) fetchComplains();
+    }, [token])
     useEffect(() => {
         const fetchEnquiry = async () => {
             setLoading(true);
             try {
-                const { data } = await axios.get(`${backendUrl}/api/get-enquiry`, { headers: { aToken } });
+                const { data } = await axios.get(`${backendUrl}/api/get-enquiry`,  {headers: {
+                    Authorization: `Bearer ${token}`,
+                  },});
                 if (data.success) {
                     setLoading(false)
                     setEnquiry(data.enquiry);
@@ -106,13 +175,15 @@ const AdminContextProvider = (props) => {
                 toast.error(error.response?.data.message || error.message);
             }
         };
-        if (aToken) fetchEnquiry();
-    }, [aToken])
+        if (token) fetchEnquiry();
+    }, [token])
 
     useEffect(() => {
         const fetchDrones = async () => {
             try {
-                const { data } = await axios.get(`${backendUrl}/api/auth/getDrone`); // Ensure correct endpoint
+                const { data } = await axios.get(`${backendUrl}/api/auth/getDrone`,{ headers: {
+                    Authorization: `Bearer ${token}`,
+                  },}); // Ensure correct endpoint
 
                 if (data.success) {
                     setDrones(data.drones);
@@ -130,7 +201,11 @@ const AdminContextProvider = (props) => {
     useEffect(() => {
         const fetchCrops = async () => {
             try {
-                const { data } = await axios.get(`${backendUrl}/api/auth/getCrop`); // Ensure correct endpoint
+                const { data } = await axios.get(`${backendUrl}/api/auth/getCrop`,
+                    {headers: {
+                        Authorization: `Bearer ${token}`,
+                      },}
+                ); // Ensure correct endpoint
 
                 console.log("It is working of crops")
                 // console.log("Data is here",data)
@@ -154,7 +229,9 @@ const AdminContextProvider = (props) => {
 
     const fetchUsers = async () => {
         try {
-            const { data } = await axios.get(`${backendUrl}/api/auth/getUsers`,
+            const { data } = await axios.get(`${backendUrl}/api/auth/getUsers`, {headers: {
+                Authorization: `Bearer ${token}`,
+              },}
             ); // Adjust URL as needed
             setAllUsers(data.users)
             // Handle user data here
@@ -177,7 +254,9 @@ const AdminContextProvider = (props) => {
     const changeAvailability = async (docId) => {
         try {
 
-            const { data } = await axios.post(backendUrl + '/api/admin/changeAvailability', { docId }, { headers: { aToken } })
+            const { data } = await axios.post(backendUrl + '/api/admin/changeAvailability', { docId },{ headers: {
+                Authorization: `Bearer ${token}`,
+              }},)
             if (data.success) {
                 toast.success(data.message)
                 getAllDoctors()
@@ -194,52 +273,61 @@ const AdminContextProvider = (props) => {
     const getAllBokings = async () => {
         try {
 
-            const { data } = await axios.get(`${backendUrl}/api/admin/getBookings`)
+            const { data } = await axios.get(`${backendUrl}/api/admin/getBookings`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              })
             if (data.success) {
 
                 setBookings(data.allBooking)
 
                 console.log(data.allBooking)
                 const cancelledBookings = data.allBooking.filter(booking => booking.cancelled === true);
-                setCancelledBookings(cancelledBookings);
-
+     setCancelledBookings(cancelledBookings);
+                
                 const cancelledCount = cancelledBookings.length;
                 console.log(cancelledCount)
-
+    
                 // Update state with the count
                 setCancelledOrdersCount(cancelledCount);
                 console.log("Cancelled Orders Count:", cancelledCount);
 
             } else {
-                // toast.error(data.message)
+                toast.error(data.message)
             }
 
         } catch (error) {
-            // toast.error(error.message)
+            toast.error(error.message)
         }
     }
-
+    
     useEffect(() => {
         getAllBokings();
     }, [])
     const getUpcomingBookings = async () => {
         try {
-            const { data } = await axios.get(`${backendUrl}/api/admin/getBookings`);
+            const { data } = await axios.get(`${backendUrl}/api/admin/getBookings`,{
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+            );
             if (data.success) {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0); // Reset time to start of the day
-
+    
                 const sevenDaysLater = new Date();
                 sevenDaysLater.setDate(today.getDate() + 7); // Get date 7 days ahead
-
+    
                 // Filter bookings for the next 7 days (including today)
                 const filteredBookings = data.allBooking.filter(booking => {
                     const bookingDate = new Date(booking.startDate);
                     bookingDate.setHours(0, 0, 0, 0); // Reset time for accurate comparison
-
-                    return bookingDate >= today && bookingDate <= sevenDaysLater;
+                    
+                    return bookingDate > today && bookingDate <= sevenDaysLater;
                 });
-
+    
                 setUpComingBookings(filteredBookings);
                 console.log("Upcoming Bookings (Next 7 Days):", filteredBookings);
             } else {
@@ -249,13 +337,17 @@ const AdminContextProvider = (props) => {
             toast.error(error.message);
         }
     };
-    useEffect(() => {
+    useEffect(()=>{
         getUpcomingBookings();
-    }, [])
+    },[])
 
     const getOrdersInProgress = async () => {
         try {
-            const { data } = await axios.get(`${backendUrl}/api/admin/getBookings`);
+            const { data } = await axios.get(`${backendUrl}/api/admin/getBookings`,{
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                });
             if (data.success) {
                 const today = new Date().toDateString(); // Get today's date as string
 
@@ -289,7 +381,11 @@ const AdminContextProvider = (props) => {
     const getDashData = async () => {
         try {
 
-            const { data } = await axios.get(backendUrl + '/api/admin/dashboard', { headers: { aToken } })
+            const { data } = await axios.get(backendUrl + '/api/admin/dashboard',{
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                });
 
             if (data.success) {
                 setDashData(data.dashData)
@@ -309,6 +405,7 @@ const AdminContextProvider = (props) => {
 
 
     const cancelAppointment = async (drone) => {
+
         Swal.fire({
             title: "Are you sure?",
             text: "Do you really want to cancel this appointment?",
@@ -320,27 +417,32 @@ const AdminContextProvider = (props) => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    console.log(aToken); // Check if the token is logged properly
-                    console.log(drone);
+                    console.log(token); // Check if the token is logged properly
+                    console.log("yhyhyhy",drone);
+                   
 
                     const id = drone.droneId;
                     const startDate = drone.startDate;
                     const endDate = drone.endDate;
-
+                    console.log("cancelledBy Admin or not",cancelledBy);
+                    console.log("anish" , customMessage,cancellationReason)
+                    
                     // Make sure token is available and then pass it in the headers
                     const response = await axios.post(
-                        `${backendUrl}/api/admin/cancelBooking/${id}`,
-                        { startDate, endDate }, // Empty body if not needed
+                         `${backendUrl}/api/admin/cancelBooking/${id}`,
+                        { startDate, endDate,cancellationReason, 
+                            customMessage ,cancelledBy: "admin"
+                             }, // Empty body if not needed
                         {
-                            headers: { Authorization: `Bearer ${aToken}` }, // Pass the headers in the correct place
+                            headers: { Authorization: `Bearer ${token}` }, // Pass the headers in the correct place
                         }
                     );
 
-                    console.log(response.data);
+                    console.log("response data",response.data);
+                    
 
                     if (response.data.success) {
                         Swal.fire("Cancelled!", "Booking has been cancelled.", "success");
-                        window.location.reload()
                     } else {
                         Swal.fire("Error!", response.data.message, "error");
                     }
@@ -350,6 +452,10 @@ const AdminContextProvider = (props) => {
                         error.response?.data || error.message
                     );
                 }
+                setModalIsOpen(false);
+                
+                setSelectedDrone(null);
+                window.location.reload();
             }
         });
     };
@@ -357,7 +463,7 @@ const AdminContextProvider = (props) => {
 
     const removeDrone = async (droneId) => {
         try {
-            console.log(aToken)
+            console.log(token)
             if (!droneId) {
                 console.error("❌ Drone ID is missing!");
                 return;
@@ -369,7 +475,7 @@ const AdminContextProvider = (props) => {
                 `${backendUrl}/api/admin/removeDrone/${droneId}`,
                 {},
                 {
-                    headers: { Authorization: `Bearer ${aToken}` }, // Pass the headers in the correct place
+                    headers: { Authorization: `Bearer ${token}` }, // Pass the headers in the correct place
                 }
 
             );
@@ -405,51 +511,28 @@ const AdminContextProvider = (props) => {
 
     const updatePilot = async (bookingId, pilotId, pilotName) => {
         try {
-            const { data } = await axios.post(
-                `${backendUrl}/api/admin/update-pilot/${bookingId}`,
-                {
-                    pilot: pilotId,
-                    pilotName: pilotName,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${aToken}`,
-                    },
-                }
-            );
-
-            console.log("Pilot updated successfully:", data.message);
-            return data;
+          const {data} = await axios.post(
+            `${backendUrl}/api/admin/update-pilot/${bookingId}`,
+            {
+              pilot: pilotId,
+              pilotName: pilotName,
+            },
+            {
+              headers: {
+                Authorization:`Bearer ${token}`,
+              },
+            }
+          );
+      
+          console.log("Pilot updated successfully:", data.message);
+          return data;
         } catch (error) {
-            console.error("Error updating pilot:", data?.message || error.message);
+          console.error("Error updating pilot:", data?.message || error.message);
         }
-    };
-
-    // const updateCoPilot = async (bookingId, coPilotId, coPilotName) => {
-    //     try {
-    //         const { data } = await axios.post(
-    //             `${backendUrl}/api/admin/update-copilot/${bookingId}`,
-    //             {
-    //                 coPilot: coPilotId,
-    //                 coPilotName: coPilotName,
-    //             },
-    //             {
-    //                 headers: {
-    //                     Authorization: `Bearer ${aToken}`,
-    //                 },
-    //             }
-    //         );
-
-    //         console.log("CoPilot updated successfully:", data.message);
-    //         return data;
-    //     } catch (error) {
-    //         console.error("Error updating pilot:", data?.message || error.message);
-    //     }
-    // };
-
+      };
     const updateCoPilot = async (bookingId, coPilotId, coPilotName) => {
         try {
-          const { data } = await axios.post(
+          const {data} = await axios.post(
             `${backendUrl}/api/admin/update-copilot/${bookingId}`,
             {
               coPilot: coPilotId,
@@ -457,7 +540,7 @@ const AdminContextProvider = (props) => {
             },
             {
               headers: {
-                Authorization: `Bearer ${aToken}`,
+                Authorization:`Bearer ${token}`,
               },
             }
           );
@@ -465,21 +548,21 @@ const AdminContextProvider = (props) => {
           console.log("CoPilot updated successfully:", data.message);
           return data;
         } catch (error) {
-          console.error("Error updating copilot:", error.response?.data?.message || error.message);
+          console.error("Error updating pilot:", data?.message || error.message);
         }
       };
-      
+
 
     const value = {
-        aToken, setAToken,
-        backendUrl, doctors,
+        token, setAToken,aToken,
+        backendUrl, 
         changeAvailability,
         bookings, setBookings,
         getAllBokings,
         cancelAppointment,
         getDashData, dashData, drones, formatDate, removeDrone, updateDroneAvailability,
         reviews, setReviews, loading, setLoading, refunds, complaints, setComplaints, enquiry, setEnquiry, cancelledOrdersCount, getUpcomingBookings, upcomingBookings, setUpComingBookings, getOrdersInProgress, ordersInProgress, setOrdersInProgress,
-        allUsers, crops, updatePilot, updateCoPilot, cancelledBookings, sidebarVisible,setSidebarVisible
+        allUsers, crops,updatePilot,updateCoPilot,cancelledBookings,setModalIsOpen,modalIsOpen,customMessage, setCustomMessage,cancellationReason, setCancellationReason,setSelectedDrone,selectedDrone,cancelledBy,setCancelledBy,permissions,dtoken,setSidebarVisible,sidebarVisible
 
     }
 

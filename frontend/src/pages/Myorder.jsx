@@ -28,63 +28,71 @@ function Myorder() {
     setSelectedItemId(selectedItemId === itemId ? null : itemId);
   };
 
-  const handleInputChange = (taskId, field, value) => {
-    setWorkData((prev) => ({
+  const handleInputChange = (id, field, value) => {
+    setWorkData(prev => ({
       ...prev,
-      [taskId]: { ...prev[taskId], [field]: value },
+      [id]: {
+        ...prev[id],
+        [field]: value,
+      },
     }));
   };
 
 
 
+
   const getCoPilotTask = async () => {
     try {
-      console.log("this is the user", userData);
+      console.log("User Data:", userData);
       console.log("Function is working");
-      console.log("Token:", token); // Log token to make sure it's set
+      console.log("Token:", token); // Verify token presence
+
       const { data } = await axios.get(
         `${backendUrl}/api/auth/copilotTask`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
-      console.log("API Response:", data.bookings); // Log the full response for debugging
+      console.log("API Response:", data); // Log the full response
 
-      if (data.success) {
-        setCopilotTask(data.bookings);
-        console.log("co pilot task is here", data.bookings);
+      if (data.success && data.copilotTasks) {
+        setCopilotTask(data.copilotTasks);
+        console.log("Co-pilot tasks received:", data.copilotTasks);
       } else {
-        console.log(" co Pilot task error:", data.message);
+        console.log("Co-pilot task error:", data.message || "Unknown error");
       }
     } catch (error) {
-      console.log("Error occurred:", error); // Log any error
+      console.error("Error occurred while fetching co-pilot tasks:", error.response?.data || error.message);
     }
   };
+
   const getPilotTask = async () => {
     try {
-      console.log("this is the user", userData);
-      console.log("Function is working");
-      console.log("Token:", token); // Log token to make sure it's set
-      const { data } = await axios.get(
-        `${backendUrl}/api/auth/pilotTask`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      console.log("User Data:", userData);
+      console.log("Token:", token); // Log token to verify it's present
 
-      console.log("API Response:", data.bookings); // Log the full response for debugging
+      const { data } = await axios.get(`${backendUrl}/api/auth/pilotTask`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      if (data.success) {
-        setPilotTask(data.bookings);
-        console.log("pilot task is here", data.bookings);
+      console.log("API Response:", data);
+
+      if (data.success && data.pilotTasks) {
+        setPilotTask(data.pilotTasks);
+        console.log("Pilot tasks received:", data.pilotTasks);
       } else {
-        console.log("Pilot task error:", data.message);
+        console.log("Error fetching pilot tasks:", data.message || "Unknown error");
       }
     } catch (error) {
-      console.log("Error occurred:", error); // Log any error
+      console.error("Error occurred while fetching pilot tasks:", error.response?.data || error.message);
     }
   };
+
 
   const cancelPilot = async (id) => {
     Swal.fire({
@@ -380,7 +388,10 @@ function Myorder() {
     try {
       if (!workData[id]) return;
 
-      const { date, target, done, pending } = workData[id];
+      const { date, target, done } = workData[id];
+
+      console.log("line 393", { date, done }); // ✅ Valid logging before API call
+
       // Show confirmation dialog before updating
       const result = await Swal.fire({
         title: "Are you sure?",
@@ -409,23 +420,21 @@ function Myorder() {
         });
       }
 
-      // Make API callword
+      // ✅ Make API call
       const { data } = await axios.post(
         `${backendUrl}/api/booking/workUpdate/${id}`,
-        { date, done, pending }, // ✅ Include date
+        { date, done },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      // Show success message
+      // ✅ Show response
       if (data.success) {
-
         await Swal.fire({
           title: "Updated!",
           text: data.message,
           icon: "success",
-
         });
       } else {
         await Swal.fire({
@@ -435,11 +444,12 @@ function Myorder() {
         });
       }
 
-      window.location.reload()
+      // ✅ Reload to reflect changes
+      window.location.reload();
     } catch (error) {
       console.error("Error updating work progress:", error);
 
-      // Show error message
+      // Show user-friendly error
       await Swal.fire({
         title: "Error!",
         text: error.response?.data?.message || "Something went wrong!",
@@ -447,6 +457,7 @@ function Myorder() {
       });
     }
   };
+
 
   const completeWork = async (id) => {
     try {
@@ -645,7 +656,7 @@ function Myorder() {
                   </thead>
                   <tbody>
                     {pilotTask.reverse().map((task, index) => (
-                      <tr key={task._id} className="text-center border-b">
+                      <tr key={task.id} className="text-center border-b">
                         <td className="border px-4 py-2">{index + 1}</td>
                         <td className="border px-4 py-2">
                           <img
@@ -684,7 +695,7 @@ function Myorder() {
 
                             {/* Upload Button */}
                             <button
-                              onClick={() => handleUpload(task._id)}
+                              onClick={() => handleUpload(task.id)}
                               className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-1.5 rounded-md shadow"
                             >
                               Upload
@@ -716,39 +727,88 @@ function Myorder() {
                         </td>
                         <td className="border px-4 py-2">
                           <div className="flex flex-col space-y-1">
+                            {/* Subtotal */}
                             <div className="flex justify-between">
                               <span className="text-gray-600">Subtotal:</span>
-                              <span className="font-medium">₹{task.subtotal}</span>
+                              <span className="font-medium">₹{Number(task.subtotal) || 0}</span>
                             </div>
 
-                            {task.specificLandPrice && task.workProgress && (() => {
-                              const totalDone = task.workProgress.reduce((sum, work) => sum + Number(work.done), 0);
-                              const extraAcres = Math.max(totalDone - task.specificLandPrice, 0);
-                              const extraAmount = extraAcres * task.cropPrice;
+                            {/* Extra Amount */}
+                            {(() => {
+                              let progress = [];
 
-                              return extraAcres > 0 && (
+                              try {
+                                progress = Array.isArray(task.workProgress)
+                                  ? task.workProgress
+                                  : JSON.parse(task.workProgress || '[]');
+                              } catch (err) {
+                                console.error("Error parsing workProgress:", err);
+                                progress = [];
+                              }
+
+                              const totalDone = progress.reduce((sum, item) => {
+                                const done = Number(item.done);
+                                return sum + (isNaN(done) ? 0 : done);
+                              }, 0);
+
+                              const target = Number(task.specificLandPrice || 0);
+                              const rate = Number(task.cropPrice || 0);
+
+                              const extra = Math.max(totalDone - target, 0);
+                              const extraAmount = extra * rate;
+
+                              // ✅ Debug
+                              console.log("workProgress:", progress);
+                              console.log("totalDone:", totalDone);
+                              console.log("target:", target);
+                              console.log("rate:", rate);
+                              console.log("extra:", extra);
+                              console.log("extraAmount:", extraAmount);
+
+                              return extra > 0 ? (
                                 <div className="flex justify-between">
-                                  <span className="text-gray-600">Extra ({extraAcres}A):</span>
+                                  <span className="text-gray-600">Extra ({extra}A):</span>
                                   <span className="text-green-600">+ ₹{extraAmount}</span>
                                 </div>
-                              );
+                              ) : null;
                             })()}
 
+                            {/* Total Amount */}
                             <div className="flex justify-between border-t pt-1">
                               <span className="font-semibold">Total:</span>
                               <span className="font-semibold">
-                                ₹{Number(task.subtotal) +
-                                  (task.specificLandPrice && task.workProgress ?
-                                    Math.max(
-                                      (task.workProgress.reduce(
-                                        (sum, work) => sum + Number(work.done), 0
-                                      ) - task.specificLandPrice) * task.cropPrice, 0
-                                    ) : 0)
-                                }
+                                ₹{(() => {
+                                  let progress = [];
+
+                                  try {
+                                    progress = Array.isArray(task.workProgress)
+                                      ? task.workProgress
+                                      : JSON.parse(task.workProgress || '[]');
+                                  } catch {
+                                    progress = [];
+                                  }
+
+                                  const totalDone = progress.reduce((sum, item) => {
+                                    const done = Number(item.done);
+                                    return sum + (isNaN(done) ? 0 : done);
+                                  }, 0);
+
+                                  const target = Number(task.specificLandPrice || 0);
+                                  const rate = Number(task.cropPrice || 0);
+                                  const extra = Math.max(totalDone - target, 0);
+                                  const extraAmount = extra * rate;
+                                  const subtotal = Number(task.subtotal || 0);
+
+                                  return subtotal + extraAmount;
+                                })()}
                               </span>
                             </div>
                           </div>
                         </td>
+
+
+
+
                         <td className="border px-4 py-2">
                           <p>
                             <strong>{task.user.name}</strong>
@@ -776,49 +836,84 @@ function Myorder() {
                               <p className="text-sm text-yellow-600 font-semibold flex items-center">
                                 ⏳ Pending:
                                 <span className="ml-2 bg-red-100 text-red-600 px-2 py-0.5 rounded-md font-medium">
-                                  {task.specificLandPrice && task.workProgress
-                                    ? Math.max(
-                                      task.specificLandPrice -
-                                      task.workProgress.reduce(
-                                        (sum, work) =>
-                                          sum + Number(work.done),
-                                        0
-                                      ),
+                                  {(() => {
+                                    let workProgress = [];
+
+                                    try {
+                                      workProgress = Array.isArray(task.workProgress)
+                                        ? task.workProgress
+                                        : JSON.parse(task.workProgress || '[]');
+                                    } catch (e) {
+                                      workProgress = [];
+                                    }
+
+                                    const totalDone = workProgress.reduce(
+                                      (sum, work) => sum + Number(work.done || 0),
                                       0
-                                    )
-                                    : task.specificLandPrice || 0}
+                                    );
+
+                                    return task.specificLandPrice
+                                      ? Math.max(task.specificLandPrice - totalDone, 0)
+                                      : 0;
+                                  })()}
                                   A
                                 </span>
+
                               </p>
 
                               <p className="text-sm text-green-600 font-semibold flex items-center">
                                 ✅ Total:
                                 <span className="ml-2 bg-green-100 text-green-600 px-2 py-0.5 rounded-md font-medium">
-                                  {task.specificLandPrice && task.workProgress
-                                    ? task.workProgress.reduce(
-                                      (sum, work) => sum + Number(work.done),
+                                  {(() => {
+                                    let workProgress = [];
+
+                                    try {
+                                      workProgress = Array.isArray(task.workProgress)
+                                        ? task.workProgress
+                                        : JSON.parse(task.workProgress || '[]');
+                                    } catch (e) {
+                                      workProgress = [];
+                                    }
+
+                                    const totalDone = workProgress.reduce(
+                                      (sum, work) => sum + Number(work.done || 0),
                                       0
-                                    )
-                                    : task.specificLandPrice || 0}
+                                    );
+
+                                    return task.specificLandPrice ? totalDone : task.specificLandPrice || 0;
+                                  })()}
                                   A
                                 </span>
+
                               </p>
 
                               <p className="text-sm text-blue-600 font-semibold flex items-center">
                                 ⏳ Extra:
                                 <span className="ml-2 bg-blue-100 text-blue-600 px-2 py-0.5 rounded-md font-medium">
-                                  {task.specificLandPrice && task.workProgress
-                                    ? Math.max(
-                                      task.workProgress.reduce(
-                                        (sum, work) =>
-                                          sum + Number(work.done),
-                                        0
-                                      ) - task.specificLandPrice,
+                                  {(() => {
+                                    let workProgress = [];
+
+                                    try {
+                                      workProgress = Array.isArray(task.workProgress)
+                                        ? task.workProgress
+                                        : JSON.parse(task.workProgress || '[]');
+                                    } catch (e) {
+                                      workProgress = [];
+                                    }
+
+                                    const totalDone = workProgress.reduce(
+                                      (sum, work) => sum + Number(work.done || 0),
                                       0
-                                    )
-                                    : 0}
-                                  A
+                                    );
+
+                                    const extra = task.specificLandPrice
+                                      ? Math.max(totalDone - task.specificLandPrice, 0)
+                                      : 0;
+
+                                    return `${extra}A`;
+                                  })()}
                                 </span>
+
                               </p>
                             </div>
 
@@ -827,19 +922,32 @@ function Myorder() {
                             </p>
 
                             <div className="mt-2 space-y-1">
-                              {(task.workProgress ?? []).map((work, index) => (
-                                <div
-                                  key={index}
-                                  className="flex justify-between items-center bg-blue-100 p-2 rounded-md shadow-sm"
-                                >
-                                  <span className="text-xs text-blue-700 font-medium">
-                                    {formatDate(work.date)}
-                                  </span>
-                                  <span className="bg-blue-500 text-white px-3 py-1 rounded-md text-xs font-semibold">
-                                    {work.done}A
-                                  </span>
-                                </div>
-                              ))}
+                              {(() => {
+                                let workProgress = [];
+
+                                try {
+                                  workProgress = Array.isArray(task.workProgress)
+                                    ? task.workProgress
+                                    : JSON.parse(task.workProgress || '[]');
+                                } catch (e) {
+                                  workProgress = [];
+                                }
+
+                                return workProgress.map((work, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex justify-between items-center bg-blue-100 p-2 rounded-md shadow-sm"
+                                  >
+                                    <span className="text-xs text-blue-700 font-medium">
+                                      {formatDate(work.date)}
+                                    </span>
+                                    <span className="bg-blue-500 text-white px-3 py-1 rounded-md text-xs font-semibold">
+                                      {work.done}A
+                                    </span>
+                                  </div>
+                                ));
+                              })()}
+
                             </div>
                           </div>
                         </td>
@@ -852,7 +960,7 @@ function Myorder() {
                                 Completed
                                 <button
                                   className="ml-2 px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                                  onClick={() => completeWork(task._id)}
+                                  onClick={() => completeWork(task.id)}
                                 >
                                   Yes
                                 </button>
@@ -861,13 +969,13 @@ function Myorder() {
                                 Progressing
                                 <button
                                   className="ml-2 px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                                  onClick={() => updateProgress(task._id, true)}
+                                  onClick={() => updateProgress(task.id, true)}
                                 >
                                   Yes
                                 </button>
                                 <button
                                   className="ml-2 px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                                  onClick={() => updateProgress(task._id, false)}
+                                  onClick={() => updateProgress(task.id, false)}
                                 >
                                   No
                                 </button>
@@ -880,10 +988,10 @@ function Myorder() {
                                 <input
                                   type="date"
                                   className="px-2 py-1 w-2/3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 text-xs"
-                                  value={workData[task._id]?.date || ""}
+                                  value={workData[task.id]?.date || ""}
                                   min={new Date().toISOString().split("T")[0]} // 👈 disables past dates
                                   onChange={(e) =>
-                                    handleInputChange(task._id, "date", e.target.value)
+                                    handleInputChange(task.id, "date", e.target.value)
                                   }
                                 />
 
@@ -897,10 +1005,10 @@ function Myorder() {
                                   type="number"
                                   placeholder="Done acres"
                                   className="px-2 py-1 w-2/3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 text-xs"
-                                  value={workData[task._id]?.done || ""}
+                                  value={workData[task.id]?.done || ""}
                                   onChange={(e) =>
                                     handleInputChange(
-                                      task._id,
+                                      task.id,
                                       "done",
                                       e.target.value
                                     )
@@ -911,7 +1019,7 @@ function Myorder() {
                               <button
                                 className="mt-3 w-full bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600 text-xs"
                                 onClick={() =>
-                                  updateWork(task._id, workData[task._id])
+                                  updateWork(task.id, workData[task.id])
                                 }
                               >
                                 Submit
@@ -934,13 +1042,13 @@ function Myorder() {
                             <div className="flex flex-col gap-2">
                               <button
                                 className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                                onClick={() => confirmCopilot(task._id)}
+                                onClick={() => confirmCopilot(task.id)}
                               >
                                 Confirm
                               </button>
                               <button
                                 className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                                onClick={() => cancelPilot(task._id)}
+                                onClick={() => cancelPilot(task.id)}
                               >
                                 Cancel
                               </button>
@@ -985,7 +1093,7 @@ function Myorder() {
                   </thead>
                   <tbody>
                     {copilotTask.reverse().map((task, index) => (
-                      <tr key={task._id} className="text-center border-b">
+                      <tr key={task.id} className="text-center border-b">
                         <td className="border px-4 py-2">{index + 1}</td>
                         <td className="border px-4 py-2">
                           <img
@@ -1014,12 +1122,14 @@ function Myorder() {
                               <span className="font-medium">₹{task.subtotal}</span>
                             </div>
 
-                            {task.specificLandPrice && task.workProgress && (() => {
+                            {task.specificLandPrice && Array.isArray(task.workProgress) && (() => {
                               const totalDone = task.workProgress.reduce((sum, work) => sum + Number(work.done), 0);
                               const extraAcres = Math.max(totalDone - task.specificLandPrice, 0);
                               const extraAmount = extraAcres * task.cropPrice;
 
-                              return extraAcres > 0 && (
+                              if (extraAcres <= 0) return null;
+
+                              return (
                                 <div className="flex justify-between">
                                   <span className="text-sm text-gray-600">Extra ({extraAcres}A):</span>
                                   <span className="text-green-600">+ ₹{extraAmount}</span>
@@ -1027,18 +1137,24 @@ function Myorder() {
                               );
                             })()}
 
+
                             <div className="flex justify-between border-t pt-1">
                               <span className="text-sm font-semibold">Total:</span>
                               <span className="font-semibold">
-                                ₹{Number(task.subtotal) +
-                                  (task.specificLandPrice && task.workProgress ?
-                                    Math.max(
+                                ₹{Number(task.subtotal || 0) +
+                                  (task.specificLandPrice && Array.isArray(task.workProgress)
+                                    ? Math.max(
                                       (task.workProgress.reduce(
-                                        (sum, work) => sum + Number(work.done), 0
-                                      ) - task.specificLandPrice) * task.cropPrice, 0
-                                    ) : 0)
+                                        (sum, work) => sum + Number(work.done || 0),
+                                        0
+                                      ) - task.specificLandPrice) * (task.cropPrice || 0),
+                                      0
+                                    )
+                                    : 0
+                                  )
                                 }
                               </span>
+
                             </div>
                           </div>
                         </td>
@@ -1058,81 +1174,88 @@ function Myorder() {
                             <p className="text-base font-semibold text-gray-800 flex items-center mb-2">
                               📌 Target:
                               <span className="ml-2 text-gray-700 font-medium">
-                                {task.specificLandPrice}A
+                                {task.specificLandPrice || 0}A
                               </span>
                             </p>
 
                             <div className="space-y-1">
-                              <p className="text-sm text-yellow-600 font-semibold flex items-center">
-                                ⏳ Pending:
-                                <span className="ml-2 bg-red-100 text-red-600 px-2 py-0.5 rounded-md font-medium">
-                                  {task.specificLandPrice && task.workProgress
-                                    ? Math.max(
-                                      task.specificLandPrice -
-                                      task.workProgress.reduce(
-                                        (sum, work) =>
-                                          sum + Number(work.done),
-                                        0
-                                      ),
-                                      0
-                                    )
-                                    : task.specificLandPrice || 0}
-                                  A
-                                </span>
-                              </p>
+                              {/* Helper to safely parse workProgress */}
+                              {(() => {
+                                let workProgress = [];
+                                try {
+                                  workProgress = Array.isArray(task.workProgress)
+                                    ? task.workProgress
+                                    : JSON.parse(task.workProgress || "[]");
+                                } catch (e) {
+                                  workProgress = [];
+                                }
 
-                              <p className="text-sm text-green-600 font-semibold flex items-center">
-                                ✅ Total:
-                                <span className="ml-2 bg-green-100 text-green-600 px-2 py-0.5 rounded-md font-medium">
-                                  {task.specificLandPrice && task.workProgress
-                                    ? task.workProgress.reduce(
-                                      (sum, work) => sum + Number(work.done),
-                                      0
-                                    )
-                                    : task.specificLandPrice || 0}
-                                  A
-                                </span>
-                              </p>
+                                const totalDone = workProgress.reduce(
+                                  (sum, work) => sum + Number(work.done || 0),
+                                  0
+                                );
 
-                              <p className="text-sm text-blue-600 font-semibold flex items-center">
-                                ⏳ Extra:
-                                <span className="ml-2 bg-blue-100 text-blue-600 px-2 py-0.5 rounded-md font-medium">
-                                  {task.specificLandPrice && task.workProgress
-                                    ? Math.max(
-                                      task.workProgress.reduce(
-                                        (sum, work) =>
-                                          sum + Number(work.done),
-                                        0
-                                      ) - task.specificLandPrice,
-                                      0
-                                    )
-                                    : 0}
-                                  A
-                                </span>
-                              </p>
-                            </div>
+                                const pending = task.specificLandPrice
+                                  ? Math.max(task.specificLandPrice - totalDone, 0)
+                                  : 0;
 
-                            <p className="text-sm text-blue-700 font-semibold flex items-center mt-3">
-                              ✅ Done:
-                            </p>
+                                const extra = task.specificLandPrice
+                                  ? Math.max(totalDone - task.specificLandPrice, 0)
+                                  : 0;
 
-                            <div className="mt-2 space-y-1">
-                              {(task.workProgress ?? []).map((work, index) => (
-                                <div
-                                  key={index}
-                                  className="flex justify-between items-center bg-blue-100 p-2 rounded-md shadow-sm"
-                                >
-                                  <span className="text-xs text-blue-700 font-medium">
-                                    {formatDate(work.date)}
-                                  </span>
-                                  <span className="bg-blue-500 text-white px-3 py-1 rounded-md text-xs font-semibold">
-                                    {work.done}A
-                                  </span>
-                                </div>
-                              ))}
+                                return (
+                                  <>
+                                    <p className="text-sm text-yellow-600 font-semibold flex items-center">
+                                      ⏳ Pending:
+                                      <span className="ml-2 bg-red-100 text-red-600 px-2 py-0.5 rounded-md font-medium">
+                                        {pending}A
+                                      </span>
+                                    </p>
+
+                                    <p className="text-sm text-green-600 font-semibold flex items-center">
+                                      ✅ Total:
+                                      <span className="ml-2 bg-green-100 text-green-600 px-2 py-0.5 rounded-md font-medium">
+                                        {totalDone}A
+                                      </span>
+                                    </p>
+
+                                    <p className="text-sm text-blue-600 font-semibold flex items-center">
+                                      ⏳ Extra:
+                                      <span className="ml-2 bg-blue-100 text-blue-600 px-2 py-0.5 rounded-md font-medium">
+                                        {extra}A
+                                      </span>
+                                    </p>
+
+                                    <p className="text-sm text-blue-700 font-semibold flex items-center mt-3">
+                                      ✅ Done:
+                                    </p>
+
+                                    <div className="mt-2 space-y-1 max-h-48 overflow-y-auto">
+                                      {workProgress.length === 0 ? (
+                                        <p className="text-xs text-gray-500 italic">No work done yet.</p>
+                                      ) : (
+                                        workProgress.map((work, index) => (
+                                          <div
+                                            key={index}
+                                            className="flex justify-between items-center bg-blue-100 p-2 rounded-md shadow-sm"
+                                          >
+                                            <span className="text-xs text-blue-700 font-medium">
+                                              {work.date ? formatDate(work.date) : "No Date"}
+                                            </span>
+                                            <span className="bg-blue-500 text-white px-3 py-1 rounded-md text-xs font-semibold">
+                                              {work.done || 0}A
+                                            </span>
+                                          </div>
+                                        ))
+                                      )}
+                                    </div>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                         </td>
+
 
                         <td className="border px-4 py-2">
                           {task.copilotConfirm && !task.workCompleted ? (
@@ -1151,13 +1274,13 @@ function Myorder() {
                             <div className="flex flex-col gap-2">
                               <button
                                 className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                                onClick={() => confirmCopilot(task._id)}
+                                onClick={() => confirmCopilot(task.id)}
                               >
                                 Confirm
                               </button>
                               <button
                                 className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                                onClick={() => cancelPilot(task._id)}
+                                onClick={() => cancelPilot(task.id)}
                               >
                                 Cancel
                               </button>
@@ -1223,31 +1346,62 @@ function Myorder() {
                             <span className="text-zinc-700">₹{item.subtotal}</span>
                           </div>
 
-                          {item.specificLandPrice && item.workProgress && (() => {
-                            const totalDone = item.workProgress.reduce((sum, work) => sum + Number(work.done), 0);
-                            const extraAcres = Math.max(totalDone - item.specificLandPrice, 0);
-                            const extraAmount = extraAcres * item.cropPrice;
+                          {(() => {
+                            let workProgress = [];
 
-                            return extraAcres > 0 && (
-                              <div className="flex justify-between">
-                                <span className="text-zinc-700 font-medium">Extra ({extraAcres}A):</span>
-                                <span className="text-green-600">+ ₹{extraAmount}</span>
-                              </div>
-                            );
+                            try {
+                              workProgress = Array.isArray(item.workProgress)
+                                ? item.workProgress
+                                : JSON.parse(item.workProgress || '[]');
+                            } catch (e) {
+                              workProgress = [];
+                            }
+
+                            if (item.specificLandPrice && workProgress.length > 0) {
+                              const totalDone = workProgress.reduce((sum, work) => sum + Number(work.done), 0);
+                              const extraAcres = Math.max(totalDone - item.specificLandPrice, 0);
+                              const extraAmount = extraAcres * item.cropPrice;
+
+                              if (extraAcres > 0) {
+                                return (
+                                  <div className="flex justify-between">
+                                    <span className="text-zinc-700 font-medium">Extra ({extraAcres}A):</span>
+                                    <span className="text-green-600">+ ₹{extraAmount}</span>
+                                  </div>
+                                );
+                              }
+                            }
+
+                            return null;
                           })()}
+
 
                           <div className="flex justify-between border-t pt-1">
                             <span className="text-zinc-700 font-semibold">Total:</span>
                             <span className="text-zinc-700 font-semibold">
-                              ₹{Number(item.subtotal) +
-                                (item.specificLandPrice && item.workProgress ?
-                                  Math.max(
-                                    (item.workProgress.reduce(
-                                      (sum, work) => sum + Number(work.done), 0
-                                    ) - item.specificLandPrice) * item.cropPrice, 0
-                                  ) : 0)
-                              }
+                              ₹{(() => {
+                                let workProgress = [];
+
+                                try {
+                                  workProgress = Array.isArray(item.workProgress)
+                                    ? item.workProgress
+                                    : JSON.parse(item.workProgress || '[]');
+                                } catch (e) {
+                                  workProgress = [];
+                                }
+
+                                const subtotal = Number(item.subtotal) || 0;
+                                const cropPrice = item.cropPrice || 0;
+                                const specificLandPrice = item.specificLandPrice || 0;
+
+                                const totalDone = workProgress.reduce((sum, work) => sum + Number(work.done), 0);
+                                const extraAcres = Math.max(totalDone - specificLandPrice, 0);
+                                const extraAmount = extraAcres * cropPrice;
+
+                                return subtotal + extraAmount;
+                              })()}
                             </span>
+
                           </div>
                         </div>
 
@@ -1290,12 +1444,12 @@ function Myorder() {
                             </button>
                             <button
                               className="bg-blue-500 text-white px-2 py-1 rounded-md text-xs ml-2"
-                              onClick={() => toggleDetails(item._id)}
+                              onClick={() => toggleDetails(item.id)}
                             >
                               Info
                             </button>
 
-                            {selectedItemId === item._id && (
+                            {selectedItemId === item.id && (
                               <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                                 <div className="bg-white shadow-lg p-6 rounded-lg border w-80 max-w-md z-10">
                                   <h3 className="font-semibold text-gray-800 text-lg">
@@ -1385,7 +1539,7 @@ function Myorder() {
 
                                   <button
                                     className="bg-red-500 mt-3 py-2 px-4 text-white rounded-md w-full text-sm"
-                                    onClick={() => toggleDetails(item._id)}
+                                    onClick={() => toggleDetails(item.id)}
                                   >
                                     Close
                                   </button>
@@ -1393,7 +1547,7 @@ function Myorder() {
                               </div>
                             )}
                           </>
-                        ) : item.orderConfirmed && !item.workProgress ? (
+                        ) : item.orderConfirmed && (!item.workProgress || item.workProgress.length === 0) ? (
                           // Order Confirmed but Work Not Started
                           <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-md">
                             <p className="font-semibold text-lg flex items-center gap-2">
@@ -1416,7 +1570,7 @@ function Myorder() {
                               {item.copilotMobile}
                             </p>
                           </div>
-                        ) : !item.orderConfirmed && !item.workProgress ? (
+                        ) : !item.orderConfirmed && (!item.workProgress || item.workProgress.length === 0) ? (
                           // New Condition: Order is pending (Final confirmation not done, work not started)
                           <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-lg shadow-md text-center">
                             <p className="font-semibold text-lg">
@@ -1437,94 +1591,133 @@ function Myorder() {
                               <p className="text-md text-yellow-600 font-semibold">
                                 ⏳ Pending:
                                 <span className="font-medium">
-                                  {item.specificLandPrice && item.workProgress
-                                    ? Math.max(
-                                      item.specificLandPrice -
-                                      item.workProgress.reduce(
-                                        (sum, work) =>
-                                          sum + Number(work.done),
-                                        0
-                                      ),
-                                      0
-                                    )
-                                    : item.specificLandPrice || 0}
-                                  A
+                                  {(() => {
+                                    let workProgress = [];
+
+                                    try {
+                                      workProgress = Array.isArray(item.workProgress)
+                                        ? item.workProgress
+                                        : JSON.parse(item.workProgress || '[]');
+                                    } catch (e) {
+                                      workProgress = [];
+                                    }
+
+                                    const specificLandPrice = Number(item.specificLandPrice) || 0;
+                                    const totalDone = workProgress.reduce((sum, work) => sum + Number(work.done), 0);
+                                    const remaining = Math.max(specificLandPrice - totalDone, 0);
+
+                                    return `${remaining}A`;
+                                  })()}
                                 </span>
+
                               </p>
 
                               <p className="text-md text-yellow-600 font-semibold">
                                 ✅ Total:
                                 <span className="font-medium">
-                                  {item.specificLandPrice && item.workProgress
-                                    ? item.workProgress.reduce(
-                                      (sum, work) => sum + Number(work.done),
-                                      0
-                                    )
-                                    : item.specificLandPrice || 0}
+                                  {(() => {
+                                    let workProgress = [];
+                                    try {
+                                      workProgress = Array.isArray(item.workProgress)
+                                        ? item.workProgress
+                                        : JSON.parse(item.workProgress || '[]');
+                                    } catch {
+                                      workProgress = [];
+                                    }
+
+                                    const specificLandPrice = Number(item.specificLandPrice) || 0;
+                                    const totalDone = workProgress.reduce((sum, work) => sum + Number(work.done), 0);
+
+                                    return totalDone || specificLandPrice;
+                                  })()}
                                   A
                                 </span>
+
                               </p>
                               <p className="text-md text-yellow-600 font-semibold">
                                 ⏳ Extra:
                                 <span className="font-medium">
-                                  {item.specificLandPrice && item.workProgress
-                                    ? Math.max(
-                                      item.workProgress.reduce(
-                                        (sum, work) =>
-                                          sum + Number(work.done),
-                                        0
-                                      ) - item.specificLandPrice,
-                                      0
-                                    )
-                                    : 0}
+                                  {(() => {
+                                    let workProgress = [];
+                                    try {
+                                      workProgress = Array.isArray(item.workProgress)
+                                        ? item.workProgress
+                                        : JSON.parse(item.workProgress || '[]');
+                                    } catch {
+                                      workProgress = [];
+                                    }
+
+                                    const specificLandPrice = Number(item.specificLandPrice) || 0;
+                                    const totalDone = workProgress.reduce((sum, work) => sum + Number(work.done), 0);
+
+                                    return Math.max(totalDone - specificLandPrice, 0);
+                                  })()}
                                   A
                                 </span>
+
                               </p>
 
                               <p className="text-md text-blue-600 font-semibold">
                                 ✅ Done:
                               </p>
                               <div className="space-y-1">
-                                {(item.workProgress ?? []).map(
-                                  (work, index) => (
-                                    <div
-                                      key={index}
-                                      className="flex justify-between items-center"
-                                    >
-                                      <p className="text-sm text-blue-600 font-medium">
-                                        <span>
-                                          {new Date(
-                                            work.date
-                                          ).toLocaleDateString()}
-                                        </span>
-                                        <span className="bg-blue-100 px-2 py-1 rounded-md">
-                                          {work.done}A
-                                        </span>
-                                      </p>
+                                {(() => {
+                                  let workProgressArray = [];
 
-                                      {/* Show Verify Button or Verified Badge */}
-                                      {work.farmerVerified ? (
-                                        <span className="text-green-600 font-semibold">
-                                          ✅ Verified
-                                        </span>
-                                      ) : (
-                                        <button
-                                          className="bg-green-500 hover:bg-green-700 text-white font-semibold px-3 py-1 rounded-md shadow-md transition duration-200"
-                                          onClick={() => {
-                                            console.log(
-                                              "Verifying work with date:",
-                                              work.date
-                                            ); // Debugging
-                                            farmerVerify(item._id, work.date);
-                                          }}
+                                  if (item?.workProgress) {
+                                    if (Array.isArray(item.workProgress)) {
+                                      workProgressArray = item.workProgress;
+                                    } else {
+                                      // Try to parse if it's a JSON string
+                                      try {
+                                        workProgressArray = JSON.parse(item.workProgress);
+                                        if (!Array.isArray(workProgressArray)) {
+                                          workProgressArray = [];
+                                        }
+                                      } catch {
+                                        workProgressArray = [];
+                                      }
+                                    }
+                                  }
+
+                                  return workProgressArray.length > 0 ? (
+                                    workProgressArray.map((work, index) => {
+                                      const workDate = work?.date ? new Date(work.date) : null;
+                                      const formattedDate = workDate ? workDate.toLocaleDateString() : "Invalid Date";
+
+                                      return (
+                                        <div
+                                          key={work.date || index}
+                                          className="flex justify-between items-center"
                                         >
-                                          Verify
-                                        </button>
-                                      )}
-                                    </div>
-                                  )
-                                )}
+                                          <p className="text-sm text-blue-600 font-medium flex gap-2 items-center">
+                                            <span>{formattedDate}</span>
+                                            <span className="bg-blue-100 px-2 py-1 rounded-md">{work.done ?? 0}A</span>
+                                          </p>
+
+                                          {work.farmerVerified ? (
+                                            <span className="text-green-600 font-semibold">✅ Verified</span>
+                                          ) : (
+                                            <button
+                                              className="bg-green-500 hover:bg-green-700 text-white font-semibold px-3 py-1 rounded-md shadow-md transition duration-200"
+                                              onClick={() => farmerVerify(item.id, work.date)}
+                                              disabled={!work.date}
+                                              title={!work.date ? "Invalid work date" : "Verify work"}
+                                            >
+                                              Verify
+                                            </button>
+                                          )}
+                                        </div>
+                                      );
+                                    })
+                                  ) : (
+                                    <p>No work progress available</p>
+                                  );
+                                })()}
+
                               </div>
+
+
 
                               {
                                 item.workCompleted ? (

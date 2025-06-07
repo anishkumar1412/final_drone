@@ -19,6 +19,7 @@ function Login() {
 
     const onSubmitHandler = async(event)=>{
       event.preventDefault()
+      console.log("button")
 
       try {
         if(state==='Super Admin'){

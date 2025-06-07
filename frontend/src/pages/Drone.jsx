@@ -61,9 +61,9 @@ function Drone() {
         return;
       }
 
-      if(selectedDistrict=== 'All' || selectedState ==='All'){
+      if (selectedDistrict === 'All' || selectedState === 'All') {
         alert("Please select the state and distric both")
-        return ;
+        return;
       }
 
       console.log("This is the data", drone, selectedDate)
@@ -136,7 +136,7 @@ function Drone() {
           {filteredDrones.length > 0 ? (
             filteredDrones.map((drone) => (
               <div
-                key={drone._id}
+                key={drone.id}
                 className="bg-white rounded-lg shadow-lg p-4 flex flex-col transition-all duration-300 hover:shadow-2xl"
               >
                 <div className="flex flex-col md:flex-row items-center md:items-start mb-4 w-full">
@@ -161,21 +161,43 @@ function Drone() {
                   selected={selectedDroneId === drone._id ? selectedDate : null} // Show date only for selected drone
                   onChange={(date) => handleDateChange(date, drone._id)}
                   minDate={new Date()}
-                  excludeDates={drone.bookings
-                    .map((booking) => {
-                      const start = new Date(booking.startDate);
-                      const end = new Date(booking.endDate);
-                      const dates = [];
-                      while (start <= end) {
-                        dates.push(new Date(start));
-                        start.setDate(start.getDate() + 1);
+                  excludeDates={
+                    (() => {
+                      let bookingsArray = [];
+
+                      if (drone.bookings) {
+                        if (typeof drone.bookings === "string") {
+                          try {
+                            bookingsArray = JSON.parse(drone.bookings);
+                          } catch (error) {
+                            console.error("Invalid JSON in drone.bookings:", drone.bookings);
+                          }
+                        } else if (Array.isArray(drone.bookings)) {
+                          bookingsArray = drone.bookings;
+                        }
                       }
-                      return dates;
-                    })
-                    .flat()}
+
+                      return bookingsArray
+                        .map((booking) => {
+                          const start = new Date(booking.startDate);
+                          const end = new Date(booking.endDate);
+                          const dates = [];
+
+                          let current = new Date(start); // clone to avoid mutation
+                          while (current <= end) {
+                            dates.push(new Date(current));
+                            current.setDate(current.getDate() + 1);
+                          }
+
+                          return dates;
+                        })
+                        .flat();
+                    })()
+                  }
                   dateFormat="dd/MM/yyyy"
                   calendarClassName="custom-calendar"
                 />
+
 
                 {drone.availability ? (
                   <button

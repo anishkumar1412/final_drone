@@ -99,11 +99,11 @@ export default (sequelize, DataTypes) => {
       allowNull: false,
     },
     pilot: {
-      type: DataTypes.STRING, // ForeignKey reference to User
+      type: DataTypes.INTEGER, // ForeignKey reference to User
       allowNull: true,
     },
     copilot: {
-      type: DataTypes.STRING, // ForeignKey reference to User
+      type: DataTypes.INTEGER, // ForeignKey reference to User
       allowNull: true,
     },
     user: {
@@ -172,7 +172,7 @@ export default (sequelize, DataTypes) => {
     },
     workProgress: {
       type: DataTypes.JSON,
-      defaultValue: {},
+      defaultValue: [],
     },
     cancellationReason: {
       type: DataTypes.STRING,

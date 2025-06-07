@@ -4,6 +4,7 @@
 import mongoose from "mongoose";
 import { v2 as cloudinary } from 'cloudinary'
 import db1 from "../models/index.js";
+import { Op } from 'sequelize'
 
 
 const User = db1.User
@@ -140,18 +141,22 @@ const createBooking = async (req, res) => {
       workingDays,
       startDate,
       endDate,
-      pilot,
-      copilot,
       villagePanchayat,
       pinCode,
       droneId,
       droneImg,
+      droneName,
+      subtotal,
+      cropImage, // optional
+
+      pilot,
+      copilot,
       pilotName,
       copilotName,
       pilotMobile,
       copilotMobile,
       workCompleted,
-      poliotConfirm,
+      pilotConfirm,
       copilotConfirm,
       orderConfirmed,
       pilotCancelled,
@@ -159,14 +164,13 @@ const createBooking = async (req, res) => {
       total,
       done,
       pending,
-      subtotal,
       workProgress,
       progress,
-      droneName,
       farmerVerifiedComplete,
-      cropPrice
+      cropPrice,
     } = req.body;
 
+    // Authentication check
     const userId = req.user?.user?.id;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized access" });
@@ -177,14 +181,33 @@ const createBooking = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (
-      !crop || !landPrice || !specificLandPrice || !workingDays || !startDate ||
-      !endDate || !villagePanchayat || !pinCode || !droneId || !droneImg
-    ) {
-      return res.status(400).json({ message: "Please fill all the required fields" });
+    // Validate required fields
+    const missingFields = [];
+    if (!crop) missingFields.push("crop");
+    if (!landPrice) missingFields.push("landPrice");
+    if (!specificLandPrice) missingFields.push("specificLandPrice");
+    if (!workingDays) missingFields.push("workingDays");
+    if (!startDate) missingFields.push("startDate");
+    if (!endDate) missingFields.push("endDate");
+    if (!villagePanchayat) missingFields.push("villagePanchayat");
+    if (!pinCode) missingFields.push("pinCode");
+    if (!droneId) missingFields.push("droneId");
+    if (!droneImg) missingFields.push("droneImg");
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        message: "Please fill all the required fields",
+        missingFields,
+      });
     }
 
-    // Create new booking
+    // Find drone instance
+    const drone = await Drone.findByPk(droneId);
+    if (!drone) {
+      return res.status(404).json({ message: "Drone not found" });
+    }
+
+    // Create booking
     const newBooking = await Booking.create({
       crop,
       landPrice,
@@ -194,10 +217,12 @@ const createBooking = async (req, res) => {
       endDate,
       villagePanchayat,
       pinCode,
-      subtotal,
-      droneImg,
-      user: user.toJSON(), // Store user info as JSON
       droneId,
+      droneImg,
+      droneName,
+      subtotal,
+      cropImage: cropImage || null,
+      user: user.toJSON(),
       pilot,
       copilot,
       pilotName,
@@ -205,7 +230,7 @@ const createBooking = async (req, res) => {
       pilotMobile,
       copilotMobile,
       workCompleted,
-      poliotConfirm,
+      pilotConfirm,
       copilotConfirm,
       orderConfirmed,
       pilotCancelled,
@@ -213,35 +238,43 @@ const createBooking = async (req, res) => {
       total,
       done,
       pending,
-      workProgress,
-      progress,
-      droneName,
+      workProgress: workProgress || {},
+      progress: progress || false,
       farmerVerifiedComplete,
       cropPrice,
     });
 
-    // Update drone bookings (assuming drone has a `bookings` field in JSON format)
-    const drone = await Drone.findByPk(droneId);
-    if (!drone) {
-      return res.status(404).json({ message: "Drone not found" });
+    // Update drone bookings array and save
+    let existingBookings;
+    try {
+      existingBookings = Array.isArray(drone.bookings)
+        ? drone.bookings
+        : JSON.parse(drone.bookings || '[]');
+    } catch (e) {
+      existingBookings = [];
     }
 
-    const currentBookings = drone.bookings || [];
-    currentBookings.push({ startDate, endDate });
+    existingBookings.push({ startDate, endDate });
+    drone.bookings = JSON.stringify(existingBookings);
 
-    await drone.update({ bookings: currentBookings });
+    await drone.save();
 
-    res.status(201).json({
+
+    return res.status(201).json({
       message: "Booking successful",
       booking: newBooking,
       updatedDrone: drone,
       success: true,
     });
   } catch (error) {
-    console.error("Error in booking:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("Booking error:", error);
+    return res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
   }
 };
+
 
 const cancelBooking = async (req, res) => {
   try {
@@ -362,66 +395,144 @@ const cancelBooking = async (req, res) => {
 //   }
 // };
 
+// const assignBooking = async (req, res) => {
+//   let { pilotId, copilotId, pilotName, copilotName, pilotMobile, copilotMobile } = req.body;
+
+//   try {
+//     // Validate pilotId
+//     if (!mongoose.Types.ObjectId.isValid(pilotId)) {
+//       return res.status(400).json({ success: false, message: "Invalid pilot ID" });
+//     }
+
+//     // Allow "no copilot" string
+//     const isCopilotAssigned = copilotId !== "no copilot";
+//     if (isCopilotAssigned && !mongoose.Types.ObjectId.isValid(copilotId)) {
+//       return res.status(400).json({ success: false, message: "Invalid copilot ID" });
+//     }
+
+//     console.log("Assigning pilot and copilot...");
+
+//     // Get the booking
+//     const booking = await Booking.findById(req.params.bookingId);
+//     if (!booking) {
+//       return res.status(404).json({ message: "Booking not found" });
+//     }
+
+//     const { startDate, endDate } = booking;
+
+//     // Check for scheduling conflict
+//     const conflictQuery = {
+//       _id: { $ne: booking._id },
+//       startDate: { $lte: endDate },
+//       endDate: { $gte: startDate },
+//       $or: [
+//         { pilot: pilotId },
+//         ...(isCopilotAssigned ? [{ copilot: copilotId }] : [])
+//       ]
+//     };
+
+//     const existingBooking = await Booking.findOne(conflictQuery);
+
+//     if (existingBooking) {
+//       return res.json({ success: false, message: "Pilot or Copilot is already assigned for the selected date range." });
+//     }
+
+//     // If copilot is "no copilot", make it null in DB
+//     const updateData = {
+//       pilot: pilotId,
+//       pilotName,
+//       pilotMobile,
+//       copilot: isCopilotAssigned ? copilotId : null,
+//       copilotName: isCopilotAssigned ? copilotName : "no copilot",
+//       copilotMobile: isCopilotAssigned ? copilotMobile : "N/A"
+//     };
+
+//     const updatedBooking = await Booking.findByIdAndUpdate(
+//       req.params.bookingId,
+//       updateData,
+//       { new: true }
+//     );
+
+//     res.status(200).json({ success: true, message: "Pilots assigned successfully", booking: updatedBooking });
+
+//   } catch (error) {
+//     console.error("Error updating booking:", error);
+//     res.status(500).json({ success: false, message: "Server Error", error: error.message });
+//   }
+// };
+
+
 const assignBooking = async (req, res) => {
-  let { pilotId, copilotId, pilotName, copilotName, pilotMobile, copilotMobile } = req.body;
+  const {
+    pilotId,
+    copilotId,
+    pilotName,
+    copilotName,
+    pilotMobile,
+    copilotMobile,
+  } = req.body;
+  const bookingId = req.params.bookingId;
 
   try {
     // Validate pilotId
-    if (!mongoose.Types.ObjectId.isValid(pilotId)) {
+    if (isNaN(pilotId)) {
       return res.status(400).json({ success: false, message: "Invalid pilot ID" });
     }
 
-    // Allow "no copilot" string
-    const isCopilotAssigned = copilotId !== "no copilot";
-    if (isCopilotAssigned && !mongoose.Types.ObjectId.isValid(copilotId)) {
+    const isCopilotAssigned = copilotId !== "no copilot" && copilotId !== null && copilotId !== undefined;
+
+    if (isCopilotAssigned && isNaN(copilotId)) {
       return res.status(400).json({ success: false, message: "Invalid copilot ID" });
     }
 
-    console.log("Assigning pilot and copilot...");
-
-    // Get the booking
-    const booking = await Booking.findById(req.params.bookingId);
+    // Find the booking, include user details if needed
+    const booking = await Booking.findByPk(bookingId);
     if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
+      return res.status(404).json({ success: false, message: "Booking not found" });
     }
 
     const { startDate, endDate } = booking;
+    console.log(startDate, endDate)
 
-    // Check for scheduling conflict
-    const conflictQuery = {
-      _id: { $ne: booking._id },
-      startDate: { $lte: endDate },
-      endDate: { $gte: startDate },
-      $or: [
-        { pilot: pilotId },
-        ...(isCopilotAssigned ? [{ copilot: copilotId }] : [])
+    // Check if pilot or copilot already assigned in conflicting bookings
+    const conflictCondition = {
+      id: { [Op.ne]: booking.id },
+      startDate: { [Op.lte]: endDate },
+      endDate: { [Op.gte]: startDate },
+      [Op.or]: [
+        { pilot: pilotId.toString() },          // cast to string
+        ...(isCopilotAssigned ? [{ copilot: copilotId.toString() }] : [])
       ]
     };
 
-    const existingBooking = await Booking.findOne(conflictQuery);
+
+    const existingBooking = await Booking.findOne({ where: conflictCondition });
 
     if (existingBooking) {
-      return res.json({ success: false, message: "Pilot or Copilot is already assigned for the selected date range." });
+      return res.status(409).json({
+        success: false,
+        message: "Pilot or Copilot is already assigned for the selected date range.",
+      });
     }
 
-    // If copilot is "no copilot", make it null in DB
+    // Prepare updated data
     const updateData = {
       pilot: pilotId,
       pilotName,
       pilotMobile,
       copilot: isCopilotAssigned ? copilotId : null,
       copilotName: isCopilotAssigned ? copilotName : "no copilot",
-      copilotMobile: isCopilotAssigned ? copilotMobile : "N/A"
+      copilotMobile: isCopilotAssigned ? copilotMobile : "N/A",
     };
 
-    const updatedBooking = await Booking.findByIdAndUpdate(
-      req.params.bookingId,
-      updateData,
-      { new: true }
-    );
+    // Update booking
+    const updatedBooking = await booking.update(updateData);
 
-    res.status(200).json({ success: true, message: "Pilots assigned successfully", booking: updatedBooking });
-
+    res.status(200).json({
+      success: true,
+      message: "Pilots assigned successfully",
+      booking: updatedBooking,
+    });
   } catch (error) {
     console.error("Error updating booking:", error);
     res.status(500).json({ success: false, message: "Server Error", error: error.message });
@@ -429,59 +540,56 @@ const assignBooking = async (req, res) => {
 };
 
 
-
 const workUpdate = async (req, res) => {
   try {
-    const { id } = req.params; // Get booking ID
-    let { date, done } = req.body; // Get work details from the pilot
+    const { id } = req.params;
+    const { date, done } = req.body;
+    console.log(date, done + " line 547");
 
-    // Validate required fields
     if (!date || done === undefined) {
-      return res.status(400).json({ message: "Date, done, and pending fields are required" });
+      return res.status(400).json({ message: "Date and done fields are required" });
     }
 
-
-    // Convert date to start of the day for consistency
     const workDate = new Date(date);
     workDate.setHours(0, 0, 0, 0);
-    const workDateString = workDate.toISOString(); // Convert to string for better comparison
+    const workDateString = workDate.toISOString();
 
-    // Find the booking
-    const booking = await Booking.findById(id);
+    const booking = await Booking.findByPk(id);
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Ensure `workProgress` is an array
-    if (!Array.isArray(booking.workProgress)) {
-      booking.workProgress = [];
-    }
+    let workProgress = Array.isArray(booking.workProgress)
+      ? booking.workProgress
+      : booking.workProgress
+        ? JSON.parse(booking.workProgress)
+        : [];
 
-    // Check if work already exists for this date
-    const existingEntryIndex = booking.workProgress.findIndex(entry =>
-      new Date(entry.date).toISOString() === workDateString
+    const existingIndex = workProgress.findIndex(
+      (entry) => new Date(entry.date).toISOString() === workDateString
     );
 
-    if (existingEntryIndex !== -1) {
-      // Update existing entry
-      booking.workProgress[existingEntryIndex].pending = pending;
-      booking.workProgress[existingEntryIndex].farmerVerified = false;
+    if (existingIndex !== -1) {
+      workProgress[existingIndex].done = done;
+      workProgress[existingIndex].farmerVerified = false;
     } else {
-      // Add new entry
-      booking.workProgress.push({ date: workDate, done, farmerVerified: false });
+      workProgress.push({
+        date: workDate,
+        done,
+        farmerVerified: false,
+      });
     }
 
-    // Mark `workProgress` as modified so Mongoose detects the change
-    booking.markModified("workProgress");
-
-    await booking.save(); // Save the updated document
+    booking.workProgress = JSON.stringify(workProgress); // ✅ this is the fix
+    await booking.save();
 
     res.json({ success: true, message: "Work updated successfully", data: booking });
   } catch (error) {
-    console.log(error);
+    console.error("Error in workUpdate:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 
 const farmerVerified = async (req, res) => {
@@ -489,31 +597,63 @@ const farmerVerified = async (req, res) => {
     const { bookingId } = req.params;
     const { date } = req.body;
 
-    console.log("Received bookingId:", bookingId);
-    console.log("Received date:", date);
+    if (!date) {
+      return res.status(400).json({ success: false, message: "Date is required" });
+    }
 
-    // Ensure date is converted to a Date object
     const formattedDate = new Date(date);
-    console.log("Formatted Date Object:", formattedDate);
+    if (isNaN(formattedDate)) {
+      return res.status(400).json({ success: false, message: "Invalid date format" });
+    }
 
-    const updatedBooking = await Booking.findOneAndUpdate(
-      { _id: bookingId, "workProgress.date": formattedDate }, // Ensure date is a Date object
-      { $set: { "workProgress.$.farmerVerified": true } },
-      { new: true }
-    );
-
-    if (!updatedBooking) {
-      console.log("No matching booking found or update failed.");
+    // 1. Fetch the booking
+    const booking = await Booking.findByPk(bookingId);
+    if (!booking) {
       return res.status(404).json({ success: false, message: "Booking not found" });
     }
 
-    console.log("Update successful:", updatedBooking);
-    res.json({ message: "Farmer verification updated successfully", booking: updatedBooking, success: true });
+    // 2. Parse workProgress (could already be an array or a JSON string)
+    let progress = booking.workProgress;
+    if (typeof progress === 'string') {
+      try {
+        progress = JSON.parse(progress);
+      } catch {
+        progress = [];
+      }
+    }
+    if (!Array.isArray(progress)) {
+      progress = [];
+    }
+
+    // 3. Find the entry for that date
+    const entryIndex = progress.findIndex(w => {
+      const wDate = new Date(w.date);
+      return wDate.toISOString() === formattedDate.toISOString();
+    });
+
+    if (entryIndex === -1) {
+      return res.status(404).json({ success: false, message: "Work progress entry not found" });
+    }
+
+    // 4. Update the farmerVerified flag
+    progress[entryIndex].farmerVerified = true;
+
+    // 5. Save back to the booking
+    booking.workProgress = progress;
+    await booking.save();
+
+    // Return updated booking
+    return res.json({
+      success: true,
+      message: "Farmer verified successfully",
+      booking
+    });
   } catch (error) {
-    console.error("Error updating farmer verification:", error);
-    res.status(500).json({ success: false, message: "Server error", error });
+    console.error("Error in farmerVerified:", error);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
+
 
 const farmerFinalVerified = async (req, res) => {
   try {

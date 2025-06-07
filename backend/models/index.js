@@ -44,10 +44,10 @@ db1.QueryTypes = QueryTypes;
 
 // Register all models
 db1.User = createUserModel(sequelize, DataTypes);
-db1.Drone = createDrone(sequelize,DataTypes);
-db1.Booking = booking(sequelize,DataTypes)
-db1.Crop = crop(sequelize,DataTypes)
-db1.WorkingDay = wday(sequelize,DataTypes)
+db1.Drone = createDrone(sequelize, DataTypes);
+db1.Booking = booking(sequelize, DataTypes)
+db1.Crop = crop(sequelize, DataTypes)
+db1.WorkingDay = wday(sequelize, DataTypes)
 
 
 
