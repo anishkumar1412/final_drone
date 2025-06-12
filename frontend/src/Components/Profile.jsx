@@ -15,7 +15,7 @@ function MyProfile() {
     const updateUserProfileData = async () => {
         try {
             const formData = new FormData();
-            formData.append('userId', userData._id);
+            formData.append('userId', userData.id);
             formData.append('name', userData.name);
             formData.append('mobNumber', userData.mobNumber);
             formData.append('email', userData.email);

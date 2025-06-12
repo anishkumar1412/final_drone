@@ -41,9 +41,9 @@ function DroneList() {
           <div
             key={item._id}
             className='border rounded-lg shadow-md overflow-hidden bg-white transition-all hover:shadow-lg cursor-pointer'
-            onClick={() => setSelectedDrone(item)}
+           
           >
-            <img className='w-full h-40 object-cover' src={item.image} alt="Drone" />
+            <img className='w-full h-40 object-cover' src={item.image} alt="Drone"  onClick={() => setSelectedDrone(item)} />
             <div className='p-4'>
               <p className='text-lg font-semibold text-gray-800'>{item.model}</p>
               <p className='text-gray-600 text-sm'>Price: {item.price}</p>
@@ -56,7 +56,7 @@ function DroneList() {
                     checked={item.availability}
                     onChange={(e) => {
                       e.stopPropagation();
-                      handleAvailabilityChange(item._id, item.availability);
+                      handleAvailabilityChange(item.id, item.availability);
                     }}
                     className='mr-2'
                   />
@@ -65,7 +65,7 @@ function DroneList() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    removeDrone(item._id);
+                    removeDrone(item.id);
                   }}
                   className= 'mt-2 bg-blue-400 px-4 py-1 rounded-full text-white text-sm'
                 >

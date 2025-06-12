@@ -278,72 +278,61 @@ const createBooking = async (req, res) => {
 
 const cancelBooking = async (req, res) => {
   try {
-    const droneId = req.params.id; // Extract droneId from URL
-    const userId = req.user.user.id; // Extract user ID from authenticated request
-    const { startDate, endDate, cancellationReason, customMessage } = req.body; // Extract cancellation details
+    const droneId = req.params.id;
+    const userId = req.user.user.id;
+    const { startDate, endDate, cancellationReason, customMessage } = req.body;
 
-    // Check if droneId is valid
-    if (!mongoose.Types.ObjectId.isValid(droneId)) {
-      return res.status(400).json({ message: "Invalid drone ID" });
+    // Validate input
+    if (!droneId || !startDate || !endDate) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Find and update the booking to mark it as cancelled with reason and message
-    const booking = await Booking.findOneAndUpdate(
-      { droneId: new mongoose.Types.ObjectId(droneId), startDate, endDate },
-      {
-        $set: {
-          cancelled: true,
-          cancellationReason,
-          customMessage,
-          pilot: null, // Set pilot to null
-          coPilot: null // Set coPilot to null
-
-        }
+    // Find and update the booking
+    const booking = await Booking.findOne({
+      where: {
+        droneId,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
       },
-      { new: true }
-    );
+    });
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Find the drone and remove the booking
-    const drone = await Drone.findById(droneId);
+    // Update booking cancellation details
+    await booking.update({
+      cancelled: true,
+      cancellationReason,
+      customMessage,
+      pilot: null,
+      coPilot: null,
+    });
+
+    // Find the drone
+    const drone = await Drone.findByPk(droneId);
     if (!drone) {
       return res.status(404).json({ message: "Drone not found" });
     }
 
-    const startDateObj = new Date(startDate);
-    const endDateObj = new Date(endDate);
+    // Assuming drone has a 'bookings' array-like relation that is manually updated
+    // OR if you store bookings in a JSON column on drone (unusual), handle accordingly
 
-    // Check if the booking exists in the drone's bookings array
-    const bookingIndex = drone.bookings.findIndex(
-      (b) =>
-        b.startDate.toString() === startDateObj.toString() &&
-        b.endDate.toString() === endDateObj.toString()
-    );
-
-    if (bookingIndex === -1) {
-      return res.status(404).json({ message: "Booking not found in drone data" });
-    }
-
-    // Remove the booking from the drone's bookings array
-    await Drone.findByIdAndUpdate(
-      droneId,
-      { $pull: { bookings: { startDate: startDateObj, endDate: endDateObj } } },
-      { new: true }
-    );
+    // If using a separate drone-bookings table or association, you may skip this
+    // Otherwise, remove the matching booking info manually if stored in drone.bookings (not recommended in Sequelize)
 
     res.status(200).json({
       message: "Booking cancelled successfully",
       success: true,
-      booking, // Send updated booking with cancellation details
+      booking,
     });
+
   } catch (error) {
     console.error("Error canceling booking:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+;
 
 
 

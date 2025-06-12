@@ -197,7 +197,7 @@ export const registerAdmins = async (req, res) => {
   try {
     const { name, email, password, role, access } = req.body;
     console.log(req.body);
-    
+
     const existingAdmin = await Admin.findOne({ email });
     if (existingAdmin) return res.status(400).json({ message: "Admin already exists" });
 
@@ -217,7 +217,7 @@ export const loginAdmins = async (req, res) => {
   try {
     const { email, password } = req.body;
     console.log(req.body)
-    
+
 
     const admin = await Admin.findOne({ email });
     if (!admin) return res.status(400).json({ message: "Admin not found" });
@@ -230,8 +230,8 @@ export const loginAdmins = async (req, res) => {
       process.env[`${admin.role.toUpperCase()}_SECRET`],
       { expiresIn: "1h" }
     );
-    console.log(token,admin)
-    res.status(201).json({ success: true,token, admin });
+    console.log(token, admin)
+    res.status(201).json({ success: true, token, admin });
     console.log("he")
   } catch (error) {
     res.status(500).json({ message: "Server Error", error });
@@ -274,8 +274,8 @@ const getAllBookings = async (req, res) => {
     res.json({ success: true, allBooking });
   } catch (error) {
     console.error("Error fetching bookings:", error);
-    res.status(500).json({ success: false, message: "Server Error" });
-  }
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
 };
 
 const adminCancelBooking = async (req, res) => {
@@ -338,78 +338,78 @@ const adminCancelBooking = async (req, res) => {
 };
 
 
+// Adjust the path to your models
+
 const removeDrone = async (req, res) => {
   try {
-    const { id } = req.params; // Get drone ID from URL params
+    const { id } = req.params;
 
     console.log("🔍 Removing Drone ID:", id);
 
     // Check if the drone exists
-    const drone = await Drone.findById(id);
+    const drone = await Drone.findByPk(id);
     if (!drone) {
       return res.status(404).json({ success: false, message: "Drone not found" });
     }
 
     // Delete the drone
-    await Drone.findByIdAndDelete(id);
+    await drone.destroy();
 
     res.json({ success: true, message: "Drone removed successfully" });
   } catch (error) {
-    console.error(" Error removing drone:", error);
+    console.error("Error removing drone:", error);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+
 
 const removeCrop = async (req, res) => {
   try {
-    const { id } = req.params; // Get drone ID from URL params
+    const { id } = req.params;
 
     console.log("🔍 Removing Crop ID:", id);
 
-    // Check if the drone exists
-    const crop = await Crop.findById(id);
+    // Check if the crop exists
+    const crop = await Crop.findByPk(id);
     if (!crop) {
-      return res.status(404).json({ success: false, message: "Drone not found" });
+      return res.status(404).json({ success: false, message: "Crop not found" });
     }
 
-    // Delete the drone
-    await Crop.findByIdAndDelete(id);
+    // Delete the crop
+    await crop.destroy();
 
     res.json({ success: true, message: "Crop removed successfully" });
   } catch (error) {
-    console.error(" Error removing drone:", error);
+    console.error("Error removing crop:", error);
     res.status(500).json({ success: false, message: "Server Error" });
   }
-};
+};;
 
 
-const changeAvailability = async (req,res)=>{
-  // Assuming you're using Express
+const changeAvailability = async (req, res) => {
   const { id } = req.params;
   const { availability } = req.body;
-  console.log("It is working")
+  console.log("It is working");
 
   try {
-    const drone = await Drone.findById(id);
+    const drone = await Drone.findByPk(id);
+
     if (!drone) {
       return res.status(404).json({ message: 'Drone not found' });
     }
-   
 
-    drone.availability = availability;
-    await drone.save();
+    // Update the availability
+    await drone.update({ availability });
 
     res.json({ message: 'Drone availability updated successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error updating drone availability' });
   }
+};
 
 
-
-}
-
- // Adjust the path to your models
+// Adjust the path to your models
 
 const confirmOrder = async (req, res) => {
   const { id } = req.body;
@@ -434,7 +434,7 @@ const confirmOrder = async (req, res) => {
 
 // upadate pilot
 
-const updatePilot = async (req,res) => {
+const updatePilot = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { pilot, pilotName } = req.body; // Only taking pilot-related fields
@@ -464,7 +464,7 @@ const updatePilot = async (req,res) => {
 
 // update copilot
 
-const updateCoPilot = async (req,res) => {
+const updateCoPilot = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { coPilot, coPilotName } = req.body; // Only taking pilot-related fields
@@ -516,20 +516,27 @@ const getWorkingDays = async (req, res) => {
 };
 
 
-const deleteWorkingDay = async (req,res) => {
+
+const deleteWorkingDay = async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedItem = await WorkingDay.findByIdAndDelete(id);
-    
+
+    // Find the record first
+    const deletedItem = await WorkingDay.findByPk(id);
+
     if (!deletedItem) {
-        return res.status(404).json({ message: "Working day not found" });
+      return res.status(404).json({ message: "Working day not found" });
     }
 
-    res.json({success:true, message: "Working day deleted successfully" });
-} catch (error) {
-    console.error("Error deleting working day:", error);
-    res.status(500).json({ success:false, message: "Server error" });
-}
-}
+    // Delete the record
+    await deletedItem.destroy();
 
-export { addDrone, getAllBookings, loginAdmin, adminCancelBooking, removeDrone,changeAvailability,addCrop,removeCrop,confirmOrder ,updatePilot,updateCoPilot, addWorkingDays,getWorkingDays , deleteWorkingDay}
+    res.json({ success: true, message: "Working day deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting working day:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+export { addDrone, getAllBookings, loginAdmin, adminCancelBooking, removeDrone, changeAvailability, addCrop, removeCrop, confirmOrder, updatePilot, updateCoPilot, addWorkingDays, getWorkingDays, deleteWorkingDay }

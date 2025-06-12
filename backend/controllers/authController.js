@@ -302,22 +302,34 @@ const updateProfile = async (req, res) => {
     const { userId, name, mobNumber, email, state, district, pin, villageName } = req.body;
     const imageFile = req.file;
 
-
     console.log('Headers:', req.headers);
 
     if (!name || !mobNumber || !state || !district || !pin || !villageName || !email) {
       return res.json({ success: false, message: "Data Missing" });
     }
-    await User.findByIdAndUpdate(userId, { name, mobNumber, state, district, pin, villageName });
 
-    if (imageFile) {
-      // upload image to cloudinary
-      const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
-      const imageUrl = imageUpload.secure_url;
-      await User.findByIdAndUpdate(userId, { image: imageUrl });
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
     }
 
+    // Update basic fields
+    await user.update({
+      name,
+      mobNumber,
+      email,
+      state,
+      district,
+      pin,
+      villageName
+    });
 
+    // If an image is uploaded, upload it to cloudinary and update the user
+    if (imageFile) {
+      const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
+      const imageUrl = imageUpload.secure_url;
+      await user.update({ image: imageUrl });
+    }
 
     res.json({ success: true, message: 'Profile Updated' });
   } catch (error) {
@@ -362,7 +374,7 @@ const getPilotTask = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-   console.log(pilotTasks)
+    console.log(pilotTasks)
 
     return res.status(200).json({ success: true, pilotTasks });
   } catch (error) {

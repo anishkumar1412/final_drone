@@ -34,67 +34,69 @@ const AdminContextProvider = (props) => {
     const backendUrl = import.meta.env.VITE_BACKEND_URL
     const [dtoken, setDtoken] = useState(localStorage.getItem("dToken"));
     const [token, settoken] = useState(dtoken || aToken);
-  const [permissions, setPermissions] = useState([]);
+    const [permissions, setPermissions] = useState([]);
 
-  useEffect(() => {
-    // Load token from localStorage on mount
-    const storedToken = localStorage.getItem("dToken");
-    if (storedToken) {
-      setDtoken(storedToken);
-      fetchUserPermissions(storedToken);
-      console.log("anish",permissions)
-      console.log("object")
-    }
-  }, []);
-  useEffect(() => {
-  const token = localStorage.getItem('aToken');
-  if (token) {
-    setAToken(token);
-  }
-}, []);
-useEffect(()=>{
-   const token = dtoken || aToken
-  settoken(token);
-},[])
+    useEffect(() => {
+        // Load token from localStorage on mount
+        const storedToken = localStorage.getItem("dToken");
+        if (storedToken) {
+            setDtoken(storedToken);
+            fetchUserPermissions(storedToken);
+            console.log("anish", permissions)
+            console.log("object")
+        }
+    }, []);
+    useEffect(() => {
+        const token = localStorage.getItem('aToken');
+        if (token) {
+            setAToken(token);
+        }
+    }, []);
+    useEffect(() => {
+        const token = dtoken || aToken
+        settoken(token);
+    }, [])
 
 
-  const fetchUserPermissions = async (token) => {
-    try {
-      const { data } = await axios.get("http://localhost:9000/api/admin/me", {
-        headers: { Authorization: `Bearer ${token}` },
-    });
-        console.log("Anish",data)
-  
-      console.log("User Permissions Response:", data);
-  
-      if (data.success) {
-        setPermissions(data.admin.access || []); 
-        console.log(data)// Ensure access is always an array
-      } else {
-        console.log("Error fetching permissions:", data.message);
-        toast.error(data.message);
-      }
-    } catch (error) {
-      console.error("Failed to fetch permissions", error);
-  
-      // Handle errors correctly
-      const errorMessage = error.response?.data?.message || "Something went wrong";
-      toast.error(errorMessage);
-    }
-  };
-  
-  useEffect(() => {
-    console.log("✅ Permissions updated:", permissions);
-  }, [permissions]);
+    const fetchUserPermissions = async (token) => {
+        try {
+            const { data } = await axios.get("http://localhost:9000/api/admin/me", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            console.log("Anish", data)
+
+            console.log("User Permissions Response:", data);
+
+            if (data.success) {
+                setPermissions(data.admin.access || []);
+                console.log(data)// Ensure access is always an array
+            } else {
+                console.log("Error fetching permissions:", data.message);
+                toast.error(data.message);
+            }
+        } catch (error) {
+            console.error("Failed to fetch permissions", error);
+
+            // Handle errors correctly
+            const errorMessage = error.response?.data?.message || "Something went wrong";
+            toast.error(errorMessage);
+        }
+    };
+
+    useEffect(() => {
+        console.log("✅ Permissions updated:", permissions);
+    }, [permissions]);
 
     const [drones, setDrones] = useState([])
     useEffect(() => {
         const fetchReviews = async () => {
             setLoading(true);
             try {
-                const { data } = await axios.get(`${backendUrl}/api/get-reviews`,{ headers: {
-                    Authorization: `Bearer ${token}`,
-                  },});
+                const { data } = await axios.get(`${backendUrl}/api/get-reviews`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
                 if (data.success) {
                     setLoading(false)
                     setReviews(data.reviews);
@@ -116,8 +118,8 @@ useEffect(()=>{
                 const { data } = await axios.get(`${backendUrl}/api/get-refunds`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
-                      },
-                    });
+                    },
+                });
                 if (data.success) {
                     setLoading(false)
                     setRefunds(data.refunds);
@@ -137,9 +139,11 @@ useEffect(()=>{
         const fetchComplains = async () => {
             setLoading(true);
             try {
-                const { data } = await axios.get(`${backendUrl}/api/get-complaints`, {headers: {
-                    Authorization: `Bearer ${token}`,
-                  },});
+                const { data } = await axios.get(`${backendUrl}/api/get-complaints`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
                 if (data.success) {
                     setLoading(false)
                     setComplaints(data.complaints);
@@ -159,9 +163,11 @@ useEffect(()=>{
         const fetchEnquiry = async () => {
             setLoading(true);
             try {
-                const { data } = await axios.get(`${backendUrl}/api/get-enquiry`,  {headers: {
-                    Authorization: `Bearer ${token}`,
-                  },});
+                const { data } = await axios.get(`${backendUrl}/api/get-enquiry`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
                 if (data.success) {
                     setLoading(false)
                     setEnquiry(data.enquiry);
@@ -181,9 +187,11 @@ useEffect(()=>{
     useEffect(() => {
         const fetchDrones = async () => {
             try {
-                const { data } = await axios.get(`${backendUrl}/api/auth/getDrone`,{ headers: {
-                    Authorization: `Bearer ${token}`,
-                  },}); // Ensure correct endpoint
+                const { data } = await axios.get(`${backendUrl}/api/auth/getDrone`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }); // Ensure correct endpoint
 
                 if (data.success) {
                     setDrones(data.drones);
@@ -202,9 +210,11 @@ useEffect(()=>{
         const fetchCrops = async () => {
             try {
                 const { data } = await axios.get(`${backendUrl}/api/auth/getCrop`,
-                    {headers: {
-                        Authorization: `Bearer ${token}`,
-                      },}
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
                 ); // Ensure correct endpoint
 
                 console.log("It is working of crops")
@@ -229,9 +239,11 @@ useEffect(()=>{
 
     const fetchUsers = async () => {
         try {
-            const { data } = await axios.get(`${backendUrl}/api/auth/getUsers`, {headers: {
-                Authorization: `Bearer ${token}`,
-              },}
+            const { data } = await axios.get(`${backendUrl}/api/auth/getUsers`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
             ); // Adjust URL as needed
             setAllUsers(data.users)
             // Handle user data here
@@ -254,9 +266,11 @@ useEffect(()=>{
     const changeAvailability = async (docId) => {
         try {
 
-            const { data } = await axios.post(backendUrl + '/api/admin/changeAvailability', { docId },{ headers: {
-                Authorization: `Bearer ${token}`,
-              }},)
+            const { data } = await axios.post(backendUrl + '/api/admin/changeAvailability', { docId }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            },)
             if (data.success) {
                 toast.success(data.message)
                 getAllDoctors()
@@ -275,20 +289,20 @@ useEffect(()=>{
 
             const { data } = await axios.get(`${backendUrl}/api/admin/getBookings`, {
                 headers: {
-                  Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${token}`,
                 },
-              })
+            })
             if (data.success) {
 
                 setBookings(data.allBooking)
 
                 console.log(data.allBooking)
                 const cancelledBookings = data.allBooking.filter(booking => booking.cancelled === true);
-     setCancelledBookings(cancelledBookings);
-                
+                setCancelledBookings(cancelledBookings);
+
                 const cancelledCount = cancelledBookings.length;
                 console.log(cancelledCount)
-    
+
                 // Update state with the count
                 setCancelledOrdersCount(cancelledCount);
                 console.log("Cancelled Orders Count:", cancelledCount);
@@ -301,33 +315,33 @@ useEffect(()=>{
             toast.error(error.message)
         }
     }
-    
+
     useEffect(() => {
         getAllBokings();
     }, [])
     const getUpcomingBookings = async () => {
         try {
-            const { data } = await axios.get(`${backendUrl}/api/admin/getBookings`,{
+            const { data } = await axios.get(`${backendUrl}/api/admin/getBookings`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
-                  },
-                }
+                },
+            }
             );
             if (data.success) {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0); // Reset time to start of the day
-    
+
                 const sevenDaysLater = new Date();
                 sevenDaysLater.setDate(today.getDate() + 7); // Get date 7 days ahead
-    
+
                 // Filter bookings for the next 7 days (including today)
                 const filteredBookings = data.allBooking.filter(booking => {
                     const bookingDate = new Date(booking.startDate);
                     bookingDate.setHours(0, 0, 0, 0); // Reset time for accurate comparison
-                    
+
                     return bookingDate > today && bookingDate <= sevenDaysLater;
                 });
-    
+
                 setUpComingBookings(filteredBookings);
                 console.log("Upcoming Bookings (Next 7 Days):", filteredBookings);
             } else {
@@ -337,17 +351,17 @@ useEffect(()=>{
             toast.error(error.message);
         }
     };
-    useEffect(()=>{
+    useEffect(() => {
         getUpcomingBookings();
-    },[])
+    }, [])
 
     const getOrdersInProgress = async () => {
         try {
-            const { data } = await axios.get(`${backendUrl}/api/admin/getBookings`,{
+            const { data } = await axios.get(`${backendUrl}/api/admin/getBookings`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
-                  },
-                });
+                },
+            });
             if (data.success) {
                 const today = new Date().toDateString(); // Get today's date as string
 
@@ -381,11 +395,11 @@ useEffect(()=>{
     const getDashData = async () => {
         try {
 
-            const { data } = await axios.get(backendUrl + '/api/admin/dashboard',{
+            const { data } = await axios.get(backendUrl + '/api/admin/dashboard', {
                 headers: {
                     Authorization: `Bearer ${token}`,
-                  },
-                });
+                },
+            });
 
             if (data.success) {
                 setDashData(data.dashData)
@@ -418,28 +432,29 @@ useEffect(()=>{
             if (result.isConfirmed) {
                 try {
                     console.log(token); // Check if the token is logged properly
-                    console.log("yhyhyhy",drone);
-                   
+                    console.log("yhyhyhy", drone);
+
 
                     const id = drone.droneId;
                     const startDate = drone.startDate;
                     const endDate = drone.endDate;
-                    console.log("cancelledBy Admin or not",cancelledBy);
-                    console.log("anish" , customMessage,cancellationReason)
-                    
+                    console.log("cancelledBy Admin or not", cancelledBy);
+                    console.log("anish", customMessage, cancellationReason)
+
                     // Make sure token is available and then pass it in the headers
                     const response = await axios.post(
-                         `${backendUrl}/api/admin/cancelBooking/${id}`,
-                        { startDate, endDate,cancellationReason, 
-                            customMessage ,cancelledBy: "admin"
-                             }, // Empty body if not needed
+                        `${backendUrl}/api/admin/cancelBooking/${id}`,
+                        {
+                            startDate, endDate, cancellationReason,
+                            customMessage, cancelledBy: "admin"
+                        }, // Empty body if not needed
                         {
                             headers: { Authorization: `Bearer ${token}` }, // Pass the headers in the correct place
                         }
                     );
 
-                    console.log("response data",response.data);
-                    
+                    console.log("response data", response.data);
+
 
                     if (response.data.success) {
                         Swal.fire("Cancelled!", "Booking has been cancelled.", "success");
@@ -453,7 +468,7 @@ useEffect(()=>{
                     );
                 }
                 setModalIsOpen(false);
-                
+
                 setSelectedDrone(null);
                 window.location.reload();
             }
@@ -494,6 +509,38 @@ useEffect(()=>{
         }
     };
 
+    const removeCrop = async (cropId) => {
+        try {
+            console.log(token)
+            if (!cropId) {
+                console.error("❌ Drone ID is missing!");
+                return;
+            }
+
+
+            const response = await axios.post(
+                `${backendUrl}/api/admin/removeCrop/${cropId}`,
+                {},
+                {
+                    headers: { Authorization: `Bearer ${token}` }, // Pass the headers in the correct place
+                }
+
+            );
+
+            console.log(" Response:", response.data);
+
+            if (response.data.success) {
+                toast.success("crop removed successfully!");
+                return response.data;
+            } else {
+                toast.error(response.data.message || "Failed to remove crop.");
+            }
+        } catch (error) {
+            console.error(" Error removing drone:", error.response?.data || error.message);
+            toast.error(error.response?.data.message || "Server Error. Try again.");
+        }
+    };
+
 
 
     const formatDate = (isoString) => {
@@ -511,58 +558,59 @@ useEffect(()=>{
 
     const updatePilot = async (bookingId, pilotId, pilotName) => {
         try {
-          const {data} = await axios.post(
-            `${backendUrl}/api/admin/update-pilot/${bookingId}`,
-            {
-              pilot: pilotId,
-              pilotName: pilotName,
-            },
-            {
-              headers: {
-                Authorization:`Bearer ${token}`,
-              },
-            }
-          );
-      
-          console.log("Pilot updated successfully:", data.message);
-          return data;
+            const { data } = await axios.post(
+                `${backendUrl}/api/admin/update-pilot/${bookingId}`,
+                {
+                    pilot: pilotId,
+                    pilotName: pilotName,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            console.log("Pilot updated successfully:", data.message);
+            return data;
         } catch (error) {
-          console.error("Error updating pilot:", data?.message || error.message);
+            console.error("Error updating pilot:", data?.message || error.message);
         }
-      };
+    };
     const updateCoPilot = async (bookingId, coPilotId, coPilotName) => {
         try {
-          const {data} = await axios.post(
-            `${backendUrl}/api/admin/update-copilot/${bookingId}`,
-            {
-              coPilot: coPilotId,
-              coPilotName: coPilotName,
-            },
-            {
-              headers: {
-                Authorization:`Bearer ${token}`,
-              },
-            }
-          );
-      
-          console.log("CoPilot updated successfully:", data.message);
-          return data;
+            const { data } = await axios.post(
+                `${backendUrl}/api/admin/update-copilot/${bookingId}`,
+                {
+                    coPilot: coPilotId,
+                    coPilotName: coPilotName,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            console.log("CoPilot updated successfully:", data.message);
+            return data;
         } catch (error) {
-          console.error("Error updating pilot:", data?.message || error.message);
+            console.error("Error updating pilot:", data?.message || error.message);
         }
-      };
+    };
 
 
     const value = {
-        token, setAToken,aToken,
-        backendUrl, 
+        token, setAToken, aToken,
+        backendUrl,
         changeAvailability,
         bookings, setBookings,
         getAllBokings,
         cancelAppointment,
+        removeCrop,
         getDashData, dashData, drones, formatDate, removeDrone, updateDroneAvailability,
         reviews, setReviews, loading, setLoading, refunds, complaints, setComplaints, enquiry, setEnquiry, cancelledOrdersCount, getUpcomingBookings, upcomingBookings, setUpComingBookings, getOrdersInProgress, ordersInProgress, setOrdersInProgress,
-        allUsers, crops,updatePilot,updateCoPilot,cancelledBookings,setModalIsOpen,modalIsOpen,customMessage, setCustomMessage,cancellationReason, setCancellationReason,setSelectedDrone,selectedDrone,cancelledBy,setCancelledBy,permissions,dtoken,setSidebarVisible,sidebarVisible
+        allUsers, crops, updatePilot, updateCoPilot, cancelledBookings, setModalIsOpen, modalIsOpen, customMessage, setCustomMessage, cancellationReason, setCancellationReason, setSelectedDrone, selectedDrone, cancelledBy, setCancelledBy, permissions, dtoken, setSidebarVisible, sidebarVisible
 
     }
 

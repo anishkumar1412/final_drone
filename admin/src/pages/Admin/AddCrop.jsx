@@ -69,7 +69,7 @@ function AddCrop() {
     return (
         <div className='flex flex-col '>
             <form className="m-5 w-full max-h-[80vh] overflow-y-auto" onSubmit={onSubmitHandle}>
-                <p className="mb-3 text-lg font-medium">Add Drone</p>
+                <p className="mb-3 text-lg font-medium">Add Crops</p>
                 <div className="bg-white px-8 py-8 border  rounded w-full  ">
 
 
@@ -143,7 +143,7 @@ function AddCrop() {
                                     <div className='flex justify-between items-center'>
 
                                         <button
-                                            onClick={()=>removeCrop(item._id)}
+                                            onClick={()=>removeCrop(item.id)}
                                             className='mt-2 bg-blue-400 px-4 py-1 rounded-full text-white text-sm'
                                         >
                                             Remove

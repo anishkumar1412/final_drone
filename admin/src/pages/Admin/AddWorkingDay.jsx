@@ -184,7 +184,7 @@ function AddWorkingDay() {
                                 <span className="font-medium text-gray-700">Acres:</span> {item.startAcre} - {item.endAcre} |
                                 <span className="text-blue-600 font-semibold"> {item.workingDays} days</span>
                             </span>
-                            <button onClick={() => handleDeleteWorkingDay(item._id)} className="text-red-500 hover:text-red-700">
+                            <button onClick={() => handleDeleteWorkingDay(item.id)} className="text-red-500 hover:text-red-700">
                                 ❌
                             </button>
                         </li>

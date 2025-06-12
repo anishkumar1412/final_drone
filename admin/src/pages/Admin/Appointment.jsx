@@ -557,7 +557,7 @@ function Appointment() {
                     className="py-3 px-4 border-r cursor-pointer"
                     onClick={() => setExpanded(!expanded)}
                   >
-                    {expanded ? item.id : item.id ? `${item.id.toString().slice(0, 1)}..` : ""}
+                    {expanded ? item.bookingId : item.bookingId ? `${item.bookingId.toString().slice(0, 1)}..` : ""}
 
                   </td>
                   <td className="py-3 px-4 border-r">
@@ -1091,5 +1091,3 @@ function Appointment() {
 }
 
 export default Appointment;
-
-
