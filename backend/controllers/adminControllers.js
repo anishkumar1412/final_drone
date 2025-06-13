@@ -288,7 +288,7 @@ const adminCancelBooking = async (req, res) => {
       return res.status(400).json({ message: "Invalid drone ID" });
     }
 
-    // Find the booking and mark it as cancelled
+    // Find the booking and mark it as aled
     const booking = await Booking.findOneAndUpdate(
       { droneId: new mongoose.Types.ObjectId(droneId), startDate, endDate },
       { $set: { cancelled: true } },

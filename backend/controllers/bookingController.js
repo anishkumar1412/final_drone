@@ -648,18 +648,18 @@ const farmerFinalVerified = async (req, res) => {
   try {
     const { bookingId } = req.params;
 
-    const updatedBooking = await Booking.findByIdAndUpdate(
-      bookingId,
-      { farmerVerifiedComplete: true },
-      { new: true }
-    );
-
-    if (!updatedBooking) {
+    // Find the booking first
+    const booking = await Booking.findByPk(bookingId);
+    if (!booking) {
       return res.status(404).json({ success: false, message: "Booking not found" });
     }
 
-    res.json({ success: true, message: "Verification complete", booking: updatedBooking });
+    // Update the verification flag
+    await booking.update({ farmerVerifiedComplete: true });
+
+    res.json({ success: true, message: "Verification complete", booking });
   } catch (error) {
+    console.error("Error in farmerFinalVerified:", error);
     res.status(500).json({ success: false, message: "Server error", error });
   }
 };
@@ -670,26 +670,27 @@ const workCompleted = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const updatedWork = await Booking.findById(id)
+    const updatedWork = await Booking.findByPk(id);
 
     if (!updatedWork) {
-      return res.json({ success: false, message: "Work not found" })
+      return res.json({ success: false, message: "Work not found" });
     }
 
     if (!updatedWork.progress) {
-      return res.json({ success: false, message: "Before completing the work progress should be done" })
+      return res.json({ success: false, message: "Before completing the work, progress should be done" });
     }
 
-    updatedWork.workCompleted = true
-    updatedWork.pilot = null
-    updatedWork.copilot = null
-    await updatedWork.save()
+    await updatedWork.update({
+      workCompleted: true,
+      
+    });
 
-    res.json({ success: true, message: "Work Completed" })
+    res.json({ success: true, message: "Work Completed" });
   } catch (error) {
-    es.status(500).json({ message: "Server error", error: error.message });
+    console.error("Error completing work:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
-}
+};
 
 
 const updateProgress = async (req, res) => {
@@ -697,28 +698,34 @@ const updateProgress = async (req, res) => {
     const { id } = req.params;
     const { progress } = req.body;
 
-
-
+    // Validate input
     if (typeof progress !== "boolean") {
       return res.status(400).json({ message: "Invalid progress value" });
     }
 
-    const updatedProgress = await Booking.findByIdAndUpdate(
-      id,
-      { progress },
-      { new: true }
-    );
-
-    if (!updatedProgress) {
-      return res.status(404).json({ message: "User not found" });
+    // Find the booking
+    const booking = await Booking.findByPk(id);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
     }
 
-    res.status(200).json({ message: "Progress updated", user: updatedProgress, success: true });
+    // Update progress
+    await booking.update({ progress });
+
+    res.status(200).json({
+      message: "Progress updated",
+      user: booking,
+      success: true
+    });
+
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message, success: false });
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+      success: false
+    });
   }
 };
-
 
 
 const uploadImageField = async (req, res) => {
