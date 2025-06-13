@@ -22,10 +22,10 @@
 
 
 const config = {
-  HOST: 'localhost',
-  USER: 'postgres',
-  PASSWORD: 'alkab123',
-  DATABASE: 'DroneAppFinal',
+  HOST: '139.59.28.202',
+  USER: 'admin',
+  PASSWORD: 'Start@123',
+  DATABASE: 'drone_booking_management_dev',
   port: 5432,
   DIALECT: 'postgres'
 };

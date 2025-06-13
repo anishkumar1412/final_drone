@@ -31,32 +31,43 @@ function ReviewComplaint() {
     bankIFSC: "",
     date: new Date().toISOString(),
   });
-  useEffect(() => {
-    const fetchBookingDetails = async () => {
-      try {
-        const response = await axios.get(`${backendUrl}/api/booking/${orderId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-  
-        if (response.data) {
-          const booking = response.data;
-  
-          setPilot(booking.pilot
-            ? { Pilotname: booking.pilot.name, Pilotemail: booking.pilot.email, PilotmobNumber: booking.pilot.mobNumber }
-            : { Pilotname: "", Pilotemail: "", PilotmobNumber: "" });
-  
-          setCoPilot(booking.copilot
-            ? { Copilotname: booking.copilot.name, Copilotemail: booking.copilot.email, CopilotmobNumber: booking.copilot.mobNumber }
-            : { Copilotname: "", Copilotemail: "", CopilotmobNumber: "" });
-        }
-  
-      } catch (error) {
-        console.error("Error fetching booking details:", error);
-      }
-    };
-  
-    if (orderId) fetchBookingDetails();
-  }, [orderId, token]);
+useEffect(() => {
+  const fetchBookingDetails = async () => {
+    if (!orderId) return; // prevent API call with undefined ID
+
+    try {
+      const response = await axios.get(`${backendUrl}/api/booking/${orderId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const booking = response.data;
+
+      setPilot(booking.pilotDetails
+        ? {
+            Pilotname: booking.pilotDetails.name,
+            Pilotemail: booking.pilotDetails.email,
+            PilotmobNumber: booking.pilotDetails.mobNumber,
+          }
+        : { Pilotname: "", Pilotemail: "", PilotmobNumber: "" });
+
+      setCoPilot(booking.copilotDetails
+        ? {
+            Copilotname: booking.copilotDetails.name,
+            Copilotemail: booking.copilotDetails.email,
+            CopilotmobNumber: booking.copilotDetails.mobNumber,
+          }
+        : { Copilotname: "", Copilotemail: "", CopilotmobNumber: "" });
+
+    } catch (error) {
+      console.error("Error fetching booking details:", error);
+    }
+  };
+
+  fetchBookingDetails();
+}, [orderId, token]);
+
+
+
   
   // Fetch product details using orderId
   useEffect(() => {
@@ -86,7 +97,7 @@ function ReviewComplaint() {
   useEffect(() => {
     const checkRefundStatus = async () => {
       try {
-        const response = await axios.get(`${backendUrl}/api/user/refunds`, {
+        const response = await axios.get(`${backendUrl}/api/refunds`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -195,7 +206,7 @@ if (formData.type === "Refund" && !/^[A-Z]{4}[0-9]{7}$/.test(formData.bankIFSC))
             ...product,
             ...pilot,
             ...copilot,
-            userId: userData._id, // Include userId
+            userId: userData.id, // Include userId
             userImage: userData?.image || "https://cdn-icons-png.flaticon.com/512/4140/4140047.png",
             userName: userData?.name || "Anonymous",
             userEmail: userData?.email || "anonymous@example.com",

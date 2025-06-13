@@ -1,19 +1,52 @@
-import mongoose from "mongoose"
+export default (sequelize, DataTypes) => {
+  const Enquiry = sequelize.define("Enquiry", {
+    productImage: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    productName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    orderId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    userImage: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    userName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    userEmail: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    reviewTitle: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    reviewText: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    rating: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        min: 1,
+        max: 5,
+      },
+    },
+    date: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+  }, {
+    timestamps: true, // adds createdAt and updatedAt
+  });
 
-const EnquirySchema = new mongoose.Schema({
-    productImage: { type: String, required: true },
-    productName: { type: String, required: true },
-    orderId: { type: String, required: true },
-    userImage: { type: String, required: true },
-    userName: { type: String, required: true },
-    userEmail: { type: String, required: true },
-    reviewTitle: { type: String, required: true },
-    reviewText: { type: String, required: true },
-    rating: { type: Number, required: true, min: 1, max: 5 },
-
-    date: { type: Date, default: Date.now },
-
-})
-
-const Enquiry = mongoose.model("enquiry",EnquirySchema)
-export default Enquiry;
+  return Enquiry;
+};

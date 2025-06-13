@@ -51,7 +51,7 @@ const Refund = () => {
         try {
           const adminMessage = adminMessages[selectedRefund._id] || "";
           const response = await axios.post(`${backendUrl}/api/update-refund-status`, {
-            refundId: selectedRefund._id,
+            refundId: selectedRefund.id,
             status,
             adminMessage,
             SanctionedRefundAmount,

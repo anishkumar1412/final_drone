@@ -224,8 +224,8 @@ const getUserBookingById = async (req, res) => {
   try {
     const { orderId } = req.params;
 
-    // Fetch booking and populate drone details
-    const order = await Booking.findById(orderId).populate("droneId");
+    // Fetch booking directly
+    const order = await db1.Booking.findByPk(orderId);
 
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found" });
@@ -234,11 +234,11 @@ const getUserBookingById = async (req, res) => {
     res.json({
       success: true,
       order: {
-        orderId: order._id,
-        date: order.startDate,  // Assuming startDate is the order date
-        productImage: order.droneImg,  // Using droneImg as productImage
-        productName: order.droneId ? order.droneId.model : "Unknown",
-        subtotal: order.subtotal // Fetching model name from Drone
+        orderId: order.id,
+        date: order.startDate,
+        productImage: order.droneImg,
+        productName: order.droneName || "Unknown",
+        subtotal: order.subtotal
       }
     });
   } catch (error) {
@@ -246,6 +246,8 @@ const getUserBookingById = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+
 
 const getAllUsers = async (req, res) => {
   try {

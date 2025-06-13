@@ -5,6 +5,10 @@ import createDrone from '../models/drone.js'
 import booking from '../models/Booking.js'
 import crop from '../models/cropModel.js'
 import wday from '../models/WorkingDay.js'
+import RefundModel from "./Refund.model.js";
+import ReviewModel from "./ReviewModel.js";
+import EnquiryModel from "./Enquiry.model.js";
+import ComplaintModel from "./Complaint.model.js";
 
 
 // Initialize Sequelize
@@ -48,7 +52,17 @@ db1.Drone = createDrone(sequelize, DataTypes);
 db1.Booking = booking(sequelize, DataTypes)
 db1.Crop = crop(sequelize, DataTypes)
 db1.WorkingDay = wday(sequelize, DataTypes)
+db1.Refund = RefundModel(sequelize,DataTypes)
+db1.Review = ReviewModel(sequelize,DataTypes)
+db1.Enquiry = EnquiryModel(sequelize,DataTypes)
+db1.Complaint = ComplaintModel(sequelize,DataTypes)
 
+
+// Booking belongs to User as Pilot
+db1.Booking.belongsTo(db1.User, { foreignKey: 'pilot', as: 'pilotDetails' });
+
+// Booking belongs to User as Copilot
+db1.Booking.belongsTo(db1.User, { foreignKey: 'copilot', as: 'copilotDetails' });
 
 
 // Sync all models

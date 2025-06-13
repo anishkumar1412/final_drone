@@ -7,7 +7,7 @@ import Sidebar from './components/Sidebar';
 import { Route, Routes } from 'react-router-dom';
 import Dashboard from './pages/Admin/Dashboard';
 import Appointment from './pages/Admin/Appointment';
-import AddDoctor from './pages/Admin/AddDoctor';
+import AddAdmin from './pages/Admin/AddAdmin';
 import DroneList from './pages/Admin/DroneList';
 import { DoctorContext } from './context/DoctorContext';
 
@@ -26,7 +26,6 @@ import Pilot from './pages/Admin/Pilot';
 import Copilot from './pages/Admin/Copilot';
 import DroneOwner from './pages/Admin/DroneOwner';
 import ApprovedRefunds from './pages/Admin/ApprovedRefunds';
-import AddAdmin from './pages/Admin/AddAdmin';
 import AddWorkingDay from './pages/Admin/AddWorkingDay';
 import DeclinedRefunds from './pages/Admin/DeclinedRefund';
 import TodaysWorkingOrder from './pages/Admin/TodaysWorkingOrder';
@@ -55,7 +54,7 @@ function App() {
         <Routes>
           <Route path='/' element={<Dashboard />} />
           <Route path='/all-appointments' element={<Appointment />} />
-          <Route path='/add-doctor' element={<AddDoctor />} />
+          <Route path='/add-doctor' element={<AddAdmin />} />
           <Route path='/add-crop' element={<AddCrop />} />
           <Route path='/add-wd' element={<AddWorkingDay />} />
           <Route path='/doctor-list' element={<DroneList />} />
