@@ -16,6 +16,11 @@ function ReviewComplaint() {
   const [copilot, setCoPilot] = useState({ Copilotname: "", Copilotemail: "", CopilotmobNumber: "" });
   const [hasRefunded, setHasRefunded] = useState(false); // State to track refund request status
   const {backendUrl} = useContext(AppContext)
+
+  const [progressDates, setProgressDates] = useState([]); // All extracted dates
+const [selectedDates, setSelectedDates] = useState([]); // User-selected dates
+
+
   const [formData, setFormData] = useState({
     orderId,
     type: "Review", // Default type
@@ -40,7 +45,17 @@ useEffect(() => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      const booking = response.data;
+     const booking = response.data;
+
+// Extract and format workProgress dates if Refund
+if (Array.isArray(booking.workProgress)) {
+  const dates = booking.workProgress.map(item =>
+    new Date(item.date).toISOString().split("T")[0] // format: YYYY-MM-DD
+  );
+  setProgressDates(dates);
+}
+
+
 
       setPilot(booking.pilotDetails
         ? {
@@ -201,17 +216,21 @@ if (formData.type === "Refund" && !/^[A-Z]{4}[0-9]{7}$/.test(formData.bankIFSC))
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const submissionData = {
-            ...formData,
-            ...product,
-            ...pilot,
-            ...copilot,
-            userId: userData.id, // Include userId
-            userImage: userData?.image || "https://cdn-icons-png.flaticon.com/512/4140/4140047.png",
-            userName: userData?.name || "Anonymous",
-            userEmail: userData?.email || "anonymous@example.com",
-            userPhone: userData?.mobNumber || "+91 1234567890",
-          };
+const submissionData = {
+  ...formData,
+  ...product,
+  ...pilot,
+  ...copilot,
+  userId: userData.id,
+  userImage: userData?.image || "https://cdn-icons-png.flaticon.com/512/4140/4140047.png",
+  userName: userData?.name || "Anonymous",
+  userEmail: userData?.email || "anonymous@example.com",
+  userPhone: userData?.mobNumber || "+91 1234567890",
+  ...(formData.type === "Refund" && { selectedProgressDates: selectedDates }) // ✅ send only selected
+};
+
+
+
   
           let endpoint = "";
           switch (formData.type) {
@@ -367,6 +386,28 @@ if (formData.type === "Refund" && !/^[A-Z]{4}[0-9]{7}$/.test(formData.bankIFSC))
             <input type="text" name="refundRequestAmount" value={formData.refundRequestAmount} onChange={handleChange} className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500" />
            
           </div>
+          <div>
+  <label className="text-gray-700 font-medium block mb-1">
+    Select Work Progress Dates <span className="text-red-500">*</span>
+  </label>
+  <select
+    multiple
+    value={selectedDates}
+    onChange={(e) =>
+      setSelectedDates(Array.from(e.target.selectedOptions, (option) => option.value))
+    }
+    className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+    required
+  >
+    {progressDates.map((date, index) => (
+      <option key={index} value={date}>
+        {date}
+      </option>
+    ))}
+  </select>
+  <p className="text-sm text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple dates</p>
+</div>
+
 
          
               <div>

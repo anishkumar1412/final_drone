@@ -128,8 +128,15 @@ export default (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+
+    // ✅ NEW FIELD
+    selectedProgressDates: {
+      type: DataTypes.JSON, // for MySQL compatibility; use ARRAY(DataTypes.STRING) in PostgreSQL
+      allowNull: false,
+      defaultValue: [],
+    },
   }, {
-    timestamps: true, // adds createdAt and updatedAt
+    timestamps: true,
   });
 
   return Refund;
