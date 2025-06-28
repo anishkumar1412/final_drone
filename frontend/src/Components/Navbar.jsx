@@ -42,14 +42,15 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
 
   const handleLogout = () => {
     setToken(null);
-    localStorage.removeItem("token"); // Ensure token is removed from storage
+    localStorage.removeItem("token");
     setIsProfileMenuOpen(false);
   };
 
   return (
     <header
-      className={`shadow-md fixed w-full transition-all duration-300 z-50 ${isNavbarScrolled ? "bg-gray-800 shadow-lg" : bgColor
-        }`}
+      className={`shadow-md fixed w-full transition-all duration-300 z-50 ${
+        isNavbarScrolled ? "bg-gray-800 shadow-lg" : bgColor
+      }`}
     >
       <nav className="max-w-screen-xl mx-auto px-4 sm:px-6 flex justify-between items-center py-4">
         {/* Logo */}
@@ -83,9 +84,10 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `px-3 py-2 rounded-md text-sm font-medium transition-all ${isActive
-                      ? "text-blue-400 border-b-2 border-blue-400"
-                      : "text-white hover:text-gray-300"
+                    `px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                      isActive
+                        ? "text-blue-400 border-b-2 border-blue-400"
+                        : "text-white hover:text-gray-300"
                     }`
                   }
                   onClick={handleLinkClick}
@@ -107,10 +109,8 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
                 <img
                   src={user?.image || "/default-profile.jpg"}
                   alt="Profile"
-                  className="w-8 h-8  rounded-full inline-block ml-2"
+                  className="w-8 h-8 rounded-full inline-block ml-2"
                 />
-
-
               </button>
               {isProfileMenuOpen && (
                 <ul className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg">
@@ -191,6 +191,95 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
           </button>
         </div>
       </nav>
+
+      {/* ✅ Mobile Menu Content */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden bg-gray-800 px-4 pb-4">
+          <ul className="space-y-2">
+            {menuItems.map((item) =>
+              item.name === "Product" ? (
+                <li key={item.name}>
+                  <a
+                    href={item.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-white hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium"
+                    onClick={handleLinkClick}
+                  >
+                    {item.name}
+                  </a>
+                </li>
+              ) : (
+                <li key={item.name}>
+                  <NavLink
+                    to={item.path}
+                    className={({ isActive }) =>
+                      `block px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                        isActive
+                          ? "text-blue-400 border-b border-blue-400"
+                          : "text-white hover:text-gray-300"
+                      }`
+                    }
+                    onClick={handleLinkClick}
+                  >
+                    {item.name}
+                  </NavLink>
+                </li>
+              )
+            )}
+
+            {token ? (
+              <>
+                <li>
+                  <NavLink
+                    to="/profile"
+                    className="block px-3 py-2 text-white hover:text-gray-300"
+                    onClick={handleLinkClick}
+                  >
+                    View Profile
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/my-order"
+                    className="block px-3 py-2 text-white hover:text-gray-300"
+                    onClick={handleLinkClick}
+                  >
+                    My Order
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/refund-reviews-status"
+                    className="block px-3 py-2 text-white hover:text-gray-300"
+                    onClick={handleLinkClick}
+                  >
+                    Refund & Reviews Status
+                  </NavLink>
+                </li>
+                <li>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-3 py-2 text-white hover:text-gray-300"
+                  >
+                    Logout
+                  </button>
+                </li>
+              </>
+            ) : (
+              <li>
+                <NavLink
+                  to="/login"
+                  className="block px-3 py-2 text-white hover:text-gray-300"
+                  onClick={handleLinkClick}
+                >
+                  SignUp/Login
+                </NavLink>
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
     </header>
   );
 };

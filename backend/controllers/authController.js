@@ -131,17 +131,7 @@ const loginUser = async (req, res) => {
 
 
 
-// const getDroneData = async (req, res) => {
 
-//   try {
-
-//     const drones = await Drone.find()
-//     res.json({ success: true, drones })
-
-//   } catch (error) {
-//     res.json({ success: false, message: error })
-//   }
-// }
 
 const getDroneData = async (req, res) => {
   try {

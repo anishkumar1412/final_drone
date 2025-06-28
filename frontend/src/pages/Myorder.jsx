@@ -323,6 +323,7 @@ function Myorder() {
 
 
   const openModal = (drone) => {
+    console.log("DDDDDDDDDDDDDDDDDDDDDDDDD"+drone.id )
     setSelectedDrone(drone);
     // console.log("Drone data is ", drone)
     setModalIsOpen(true);
@@ -350,11 +351,11 @@ function Myorder() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          console.log(selectedDrone)
-          const { droneId, startDate, endDate } = selectedDrone;
+          console.log("Selelelleleelelelelelele"+selectedDrone.startDate)
+          const { id, startDate, endDate } = selectedDrone;
 
           const response = await axios.post(
-            `${backendUrl}/api/booking/cancelBooking/${droneId}`,
+            `${backendUrl}/api/booking/cancelBooking/${id}`,
             { startDate, endDate, cancellationReason, customMessage },
             {
               headers: { Authorization: `Bearer ${token}` },
@@ -1764,7 +1765,7 @@ function Myorder() {
                           !item.payment &&
                           !item.isCompleted && (
                             <button
-                              onClick={() => appointmentRazorpay(item._id)}
+                              onClick={() => appointmentRazorpay(item.id)}
                               className="text-sm py-2 px-4 rounded-lg text-white bg-green-500 hover:bg-green-600 transition-all duration-300 transform hover:scale-105"
                             >
                               Pay Online
