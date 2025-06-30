@@ -276,63 +276,63 @@ const createBooking = async (req, res) => {
 };
 
 
-const cancelBooking = async (req, res) => {
-  try {
-    const droneId = req.params.id;
-    const userId = req.user.user.id;
-    const { startDate, endDate, cancellationReason, customMessage } = req.body;
+// const cancelBooking = async (req, res) => {
+//   try {
+//     const droneId = req.params.id;
+//     const userId = req.user.user.id;
+//     const { startDate, endDate, cancellationReason, customMessage } = req.body;
 
-    // Validate input
-    if (!droneId || !startDate || !endDate) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
+//     // Validate input
+//     if (!droneId || !startDate || !endDate) {
+//       return res.status(400).json({ message: "Missing required fields" });
+//     }
 
-    // Find and update the booking
-    const booking = await Booking.findOne({
-      where: {
-        droneId,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-      },
-    });
+//     // Find and update the booking
+//     const booking = await Booking.findOne({
+//       where: {
+//         droneId,
+//         startDate: new Date(startDate),
+//         endDate: new Date(endDate),
+//       },
+//     });
 
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
+//     if (!booking) {
+//       return res.status(404).json({ message: "Booking not found" });
+//     }
 
-    // Update booking cancellation details
-    await booking.update({
-      cancelled: true,
-      cancellationReason,
-      customMessage,
-      pilot: null,
-      coPilot: null,
-    });
+//     // Update booking cancellation details
+//     await booking.update({
+//       cancelled: true,
+//       cancellationReason,
+//       customMessage,
+//       pilot: null,
+//       coPilot: null,
+//     });
 
-    // Find the drone
-    const drone = await Drone.findByPk(droneId);
-    if (!drone) {
-      return res.status(404).json({ message: "Drone not found" });
-    }
+//     // Find the drone
+//     const drone = await Drone.findByPk(droneId);
+//     if (!drone) {
+//       return res.status(404).json({ message: "Drone not found" });
+//     }
 
-    // Assuming drone has a 'bookings' array-like relation that is manually updated
-    // OR if you store bookings in a JSON column on drone (unusual), handle accordingly
+//     // Assuming drone has a 'bookings' array-like relation that is manually updated
+//     // OR if you store bookings in a JSON column on drone (unusual), handle accordingly
 
-    // If using a separate drone-bookings table or association, you may skip this
-    // Otherwise, remove the matching booking info manually if stored in drone.bookings (not recommended in Sequelize)
+//     // If using a separate drone-bookings table or association, you may skip this
+//     // Otherwise, remove the matching booking info manually if stored in drone.bookings (not recommended in Sequelize)
 
-    res.status(200).json({
-      message: "Booking cancelled successfully",
-      success: true,
-      booking,
-    });
+//     res.status(200).json({
+//       message: "Booking cancelled successfully",
+//       success: true,
+//       booking,
+//     });
 
-  } catch (error) {
-    console.error("Error canceling booking:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
-  }
-};
-;
+//   } catch (error) {
+//     console.error("Error canceling booking:", error);
+//     res.status(500).json({ message: "Internal server error", error: error.message });
+//   }
+// };
+// ;
 
 
 
@@ -449,6 +449,77 @@ const cancelBooking = async (req, res) => {
 //     res.status(500).json({ success: false, message: "Server Error", error: error.message });
 //   }
 // };
+
+
+const cancelBooking = async (req, res) => {
+  try {
+    const droneId = req.params.id;
+    console.log("Drone id is " + droneId)
+    const userId = req.user.user.id;
+    const { startDate, endDate, cancellationReason, customMessage } = req.body;
+
+    if (!droneId || !startDate || !endDate) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Find and update the booking
+    const booking = await Booking.findOne({
+      where: {
+        droneId,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+      },
+    });
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    await booking.update({
+      cancelled: true,
+      cancellationReason,
+      customMessage,
+      pilot: null,
+      coPilot: null,
+    });
+
+    // Fetch the drone
+    // Fetch the drone
+    const drone = await Drone.findByPk(droneId);
+    if (!drone) {
+      return res.status(404).json({ message: "Drone not found" });
+    }
+
+    // Convert bookings (stored as string) into array
+    let bookingsArray = [];
+    try {
+      bookingsArray = JSON.parse(drone.bookings);
+    } catch (err) {
+      return res.status(500).json({ message: "Invalid bookings format", error: err.message });
+    }
+
+    // Remove the booking
+    const updatedBookings = bookingsArray.filter(b =>
+      !(new Date(b.startDate).toISOString().split('T')[0] === new Date(startDate).toISOString().split('T')[0] &&
+        new Date(b.endDate).toISOString().split('T')[0] === new Date(endDate).toISOString().split('T')[0])
+    );
+
+    // Save back as stringified JSON
+    await drone.update({ bookings: JSON.stringify(updatedBookings) });
+
+
+    res.status(200).json({
+      message: "Booking cancelled and removed from drone bookings array",
+      success: true,
+      booking,
+    });
+
+  } catch (error) {
+    console.error("Error canceling booking:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
 
 
 const assignBooking = async (req, res) => {
@@ -682,7 +753,7 @@ const workCompleted = async (req, res) => {
 
     await updatedWork.update({
       workCompleted: true,
-      
+
     });
 
     res.json({ success: true, message: "Work Completed" });

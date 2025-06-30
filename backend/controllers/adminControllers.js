@@ -278,67 +278,135 @@ const getAllBookings = async (req, res) => {
   }
 };
 
+// const adminCancelBooking = async (req, res) => {
+//   try {
+//     const droneId = req.params.id; // Extract droneId from the URL
+//     const { startDate, endDate } = req.body;
+
+//     // Check if droneId is valid
+//     if (!mongoose.Types.ObjectId.isValid(droneId)) {
+//       return res.status(400).json({ message: "Invalid drone ID" });
+//     }
+
+//     // Find the booking and mark it as aled
+//     const booking = await Booking.findOneAndUpdate(
+//       { droneId: new mongoose.Types.ObjectId(droneId), startDate, endDate },
+//       { $set: { cancelled: true } },
+//       { new: true }
+//     );
+
+//     if (!booking) {
+//       return res.status(404).json({ message: "Booking not found" });
+//     }
+
+//     // Find the drone and remove the booking
+//     const drone = await Drone.findById(droneId);
+//     if (!drone) {
+//       return res.status(404).json({ message: "Drone not found" });
+//     }
+
+//     const startDateObj = new Date(startDate);
+//     const endDateObj = new Date(endDate);
+
+//     // Check if the booking exists in the drone's bookings array
+//     const bookingIndex = drone.bookings.findIndex(
+//       (booking) =>
+//         booking.startDate.toString() === startDateObj.toString() &&
+//         booking.endDate.toString() === endDateObj.toString()
+//     );
+
+//     if (bookingIndex === -1) {
+//       return res.status(404).json({ message: "Booking not found" });
+//     }
+
+//     // Remove the booking from the bookings array
+//     // Use $pull operator to remove the booking from the database
+//     await Drone.findByIdAndUpdate(
+//       droneId,
+//       { $pull: { bookings: { startDate: startDateObj, endDate: endDateObj } } },
+//       { new: true }
+//     );
+
+//     res.status(200).json({
+//       message: "Booking cancelled successfully",
+//       success: true,
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ message: "Internal server error", error: error.message });
+//   }
+// };
+
+
+
 const adminCancelBooking = async (req, res) => {
-  try {
-    const droneId = req.params.id; // Extract droneId from the URL
+ try {
+    const droneId = req.params.id;
+    console.log("Drone id is " + droneId)
+
     const { startDate, endDate } = req.body;
 
-    // Check if droneId is valid
-    if (!mongoose.Types.ObjectId.isValid(droneId)) {
-      return res.status(400).json({ message: "Invalid drone ID" });
+    if (!droneId || !startDate || !endDate) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Find the booking and mark it as aled
-    const booking = await Booking.findOneAndUpdate(
-      { droneId: new mongoose.Types.ObjectId(droneId), startDate, endDate },
-      { $set: { cancelled: true } },
-      { new: true }
-    );
+    // Find and update the booking
+    const booking = await Booking.findOne({
+      where: {
+        droneId,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+      },
+    });
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Find the drone and remove the booking
-    const drone = await Drone.findById(droneId);
+    await booking.update({
+      cancelled: true,
+      pilot: null,
+      coPilot: null,
+    });
+
+    // Fetch the drone
+    // Fetch the drone
+    const drone = await Drone.findByPk(droneId);
     if (!drone) {
       return res.status(404).json({ message: "Drone not found" });
     }
 
-    const startDateObj = new Date(startDate);
-    const endDateObj = new Date(endDate);
-
-    // Check if the booking exists in the drone's bookings array
-    const bookingIndex = drone.bookings.findIndex(
-      (booking) =>
-        booking.startDate.toString() === startDateObj.toString() &&
-        booking.endDate.toString() === endDateObj.toString()
-    );
-
-    if (bookingIndex === -1) {
-      return res.status(404).json({ message: "Booking not found" });
+    // Convert bookings (stored as string) into array
+    let bookingsArray = [];
+    try {
+      bookingsArray = JSON.parse(drone.bookings);
+    } catch (err) {
+      return res.status(500).json({ message: "Invalid bookings format", error: err.message });
     }
 
-    // Remove the booking from the bookings array
-    // Use $pull operator to remove the booking from the database
-    await Drone.findByIdAndUpdate(
-      droneId,
-      { $pull: { bookings: { startDate: startDateObj, endDate: endDateObj } } },
-      { new: true }
+    // Remove the booking
+    const updatedBookings = bookingsArray.filter(b =>
+      !(new Date(b.startDate).toISOString().split('T')[0] === new Date(startDate).toISOString().split('T')[0] &&
+        new Date(b.endDate).toISOString().split('T')[0] === new Date(endDate).toISOString().split('T')[0])
     );
 
+    // Save back as stringified JSON
+    await drone.update({ bookings: JSON.stringify(updatedBookings) });
+
+
     res.status(200).json({
-      message: "Booking cancelled successfully",
+      message: "Booking cancelled and removed from drone bookings array",
       success: true,
+      booking,
     });
+
   } catch (error) {
-    console.log(error);
+    console.error("Error canceling booking:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 
 
-// Adjust the path to your models
 
 const removeDrone = async (req, res) => {
   try {

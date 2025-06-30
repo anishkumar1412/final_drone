@@ -4,6 +4,8 @@ import axios from "axios";
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../Context/AppContext';
+import Swal from 'sweetalert2';
+
 
 
 function Login() {
@@ -26,8 +28,10 @@ function Login() {
     pin: "",
     villageName: "",
     password: "",
+    confirmPassword: "", // ✅ NEW
     role: "",
   });
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,10 +48,21 @@ function Login() {
 
     try {
 
-      if(isRegistering && formData.pin.length <6 || formData.pin.length >6){
+      if (isRegistering && formData.pin.length < 6 || formData.pin.length > 6) {
         alert('pin must be in 6 digit')
         return
       }
+      if (isRegistering && formData.password !== formData.confirmPassword) {
+        // Import Swal at the top if not already
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Password Mismatch',
+          text: 'Password and Confirm Password must match.',
+        });
+        return;
+      }
+
 
       const response = await axios.post(endpoint, formData, {
         headers: {
@@ -212,6 +227,19 @@ function Login() {
               onChange={handleChange}
               className="p-2 border border-gray-300 rounded-md"
             />
+
+            {isRegistering && (
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className="p-2 border border-gray-300 rounded-md"
+              />
+
+            )}
+
 
           </div>
           <button

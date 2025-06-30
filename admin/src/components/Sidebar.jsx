@@ -17,7 +17,7 @@ function Sidebar() {
       <NavLink
         onClick={() => setSidebarVisible(!sidebarVisible)}
         className="mt-6 ml-4 p-2 bg-blue-500 text-white rounded-md"
-        to={"/"}
+        to={"/admin"}
       >
         {sidebarVisible ? "Hide" : "Show"}
       </NavLink>
@@ -32,7 +32,7 @@ function Sidebar() {
                     isActive ? "bg-[#F2F3FF] border-r-4 border-primary" : ""
                   }`
                 }
-                to={"/"}
+                to={"/admin"}
               >
                 <img src={assets.home_icon} alt="" />
                 <p>Dashboard</p>
