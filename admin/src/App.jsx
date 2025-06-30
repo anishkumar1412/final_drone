@@ -40,6 +40,7 @@ import SuccessfulPaymentsCard from './pages/Admin/successfulpayments';
 import PartialPaymentsCard from './pages/Admin/partialpayment';
 import FailedPaymentsCard from './pages/Admin/FailedPayments';
 import PendingPaymentsCard from './pages/Admin/PendingPayments';
+import AddDrone from './pages/Admin/AddDrone';
 
 function App() {
   const { aToken } = useContext(AdminContext)
@@ -54,7 +55,7 @@ function App() {
         <Routes>
           <Route path='/admin/' element={<Dashboard />} />
           <Route path='/all-appointments' element={<Appointment />} />
-          <Route path='/add-doctor' element={<AddAdmin />} />
+          <Route path='/add-doctor' element={<AddDrone />} />
           <Route path='/add-crop' element={<AddCrop />} />
           <Route path='/add-wd' element={<AddWorkingDay />} />
           <Route path='/doctor-list' element={<DroneList />} />

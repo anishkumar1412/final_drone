@@ -352,10 +352,10 @@ function Myorder() {
       if (result.isConfirmed) {
         try {
           console.log("Selelelleleelelelelelele"+selectedDrone.startDate)
-          const { id, startDate, endDate } = selectedDrone;
+          const { droneId, startDate, endDate } = selectedDrone;
 
           const response = await axios.post(
-            `${backendUrl}/api/booking/cancelBooking/${id}`,
+            `${backendUrl}/api/booking/cancelBooking/${droneId}`,
             { startDate, endDate, cancellationReason, customMessage },
             {
               headers: { Authorization: `Bearer ${token}` },

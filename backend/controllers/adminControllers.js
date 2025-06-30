@@ -340,24 +340,22 @@ const getAllBookings = async (req, res) => {
 
 
 const adminCancelBooking = async (req, res) => {
-  try {
+ try {
     const droneId = req.params.id;
+    console.log("Drone id is " + droneId)
+
     const { startDate, endDate } = req.body;
 
-    if (!droneId || isNaN(Number(droneId))) {
-      return res.status(400).json({ message: "Invalid drone ID" });
+    if (!droneId || !startDate || !endDate) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const startDateObj = new Date(startDate);
-    const endDateObj = new Date(endDate);
-
-    // Find the booking record and mark as cancelled
+    // Find and update the booking
     const booking = await Booking.findOne({
       where: {
-        droneId: droneId,
-        startDate: startDateObj,
-        endDate: endDateObj,
-        cancelled: false,
+        droneId,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
       },
     });
 
@@ -365,31 +363,45 @@ const adminCancelBooking = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Mark it as cancelled
-    await booking.update({ cancelled: true });
+    await booking.update({
+      cancelled: true,
+      pilot: null,
+      coPilot: null,
+    });
 
-    // Fetch drone and update bookings array
+    // Fetch the drone
+    // Fetch the drone
     const drone = await Drone.findByPk(droneId);
     if (!drone) {
       return res.status(404).json({ message: "Drone not found" });
     }
 
-    // Remove the booking from the drone.bookings array
-    const updatedBookings = drone.bookings.filter(
-      (b) =>
-        new Date(b.startDate).toISOString() !== startDateObj.toISOString() ||
-        new Date(b.endDate).toISOString() !== endDateObj.toISOString()
+    // Convert bookings (stored as string) into array
+    let bookingsArray = [];
+    try {
+      bookingsArray = JSON.parse(drone.bookings);
+    } catch (err) {
+      return res.status(500).json({ message: "Invalid bookings format", error: err.message });
+    }
+
+    // Remove the booking
+    const updatedBookings = bookingsArray.filter(b =>
+      !(new Date(b.startDate).toISOString().split('T')[0] === new Date(startDate).toISOString().split('T')[0] &&
+        new Date(b.endDate).toISOString().split('T')[0] === new Date(endDate).toISOString().split('T')[0])
     );
 
-    // Update the drone's bookings array
-    await drone.update({ bookings: updatedBookings });
+    // Save back as stringified JSON
+    await drone.update({ bookings: JSON.stringify(updatedBookings) });
+
 
     res.status(200).json({
-      message: "Booking cancelled and drone dates updated successfully",
+      message: "Booking cancelled and removed from drone bookings array",
       success: true,
+      booking,
     });
+
   } catch (error) {
-    console.error("Cancellation error:", error);
+    console.error("Error canceling booking:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
