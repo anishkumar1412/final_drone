@@ -54,39 +54,39 @@ function App() {
         <Sidebar />
         <Routes>
           <Route path='/admin/' element={<Dashboard />} />
-          <Route path='/all-appointments' element={<Appointment />} />
-          <Route path='/add-doctor' element={<AddDrone />} />
-          <Route path='/add-crop' element={<AddCrop />} />
-          <Route path='/add-wd' element={<AddWorkingDay />} />
-          <Route path='/doctor-list' element={<DroneList />} />
-          <Route path='/upcoming-orders' element={<UpComingOrders />} />
-          <Route path='/todays-orders' element={<TodaysWorkingOrder />} />
-          <Route path='/pending-orders' element={<PendingOrder />} />
-          <Route path='/waiting-for-confirmation' element={<WaitingForConfirmation />} />
-          <Route path='/completed-orders' element={<CompletedOrders />} />
-          <Route path='/orders-in-progress' element={<OrdersInProgress />} />
-          <Route path='/cancelled-orders' element={<CancelOrder />} />
-          <Route path="/tickets/review" element={<Review />} />
-          <Route path="/tickets/refund" element={<Refund />} />
-          <Route path="/tickets/complain" element={<Complain />} />
-          <Route path="/tickets/enquiry" element={<Enquiry />} />
-          <Route path="/tickets/other" element={<Other />} />
-          <Route path="/approved-refunds" element={<ApprovedRefunds />} />
-          <Route path="/declined-refunds" element={<DeclinedRefunds />} />
-          <Route path="/add-admins" element={<AddAdmin />} />
-          <Route path="/work-on-hold" element={<WorkOnHold />} />
-          <Route path="/todays-date-orders" element={<TodaysBookings />} />
-          <Route path="/unassigned-orders" element={<UnassigendOrders />} />
-          <Route path="/unauthorized" element={<UnauthorizedPage />} />
-          <Route path='/adminUser' element={<AdminUser />} />
-          <Route path='/farmer' element={<Farmer />} />
-          <Route path='/pilot' element={<Pilot />} />
-          <Route path='/copilot' element={<Copilot />} />
-          <Route path='/dron-owner' element={<DroneOwner />} />
-          <Route path="/successful-payments" element={<SuccessfulPaymentsCard />} />
-          <Route path="/parital-payments" element={<PartialPaymentsCard />} />
-          <Route path="/pending-payments" element={<PendingPaymentsCard />} />
-          <Route path="/failed-payments" element={<FailedPaymentsCard/>} />
+          <Route path='/admin/all-appointments' element={<Appointment />} />
+          <Route path='/admin/add-doctor' element={<AddDrone />} />
+          <Route path='/admin/add-crop' element={<AddCrop />} />
+          <Route path='/admin/add-wd' element={<AddWorkingDay />} />
+          <Route path='/admin/doctor-list' element={<DroneList />} />
+          <Route path='/admin/upcoming-orders' element={<UpComingOrders />} />
+          <Route path='/admin/todays-orders' element={<TodaysWorkingOrder />} />
+          <Route path='/admin/pending-orders' element={<PendingOrder />} />
+          <Route path='/admin/waiting-for-confirmation' element={<WaitingForConfirmation />} />
+          <Route path='/admin/completed-orders' element={<CompletedOrders />} />
+          <Route path='/admin/orders-in-progress' element={<OrdersInProgress />} />
+          <Route path='/admin/cancelled-orders' element={<CancelOrder />} />
+          <Route path="/admin/tickets/review" element={<Review />} />
+          <Route path="/admin/tickets/refund" element={<Refund />} />
+          <Route path="/admin/tickets/complain" element={<Complain />} />
+          <Route path="/admin/tickets/enquiry" element={<Enquiry />} />
+          <Route path="/admin/tickets/other" element={<Other />} />
+          <Route path="/admin/approved-refunds" element={<ApprovedRefunds />} />
+          <Route path="/admin/declined-refunds" element={<DeclinedRefunds />} />
+          <Route path="/admin/add-admins" element={<AddAdmin />} />
+          <Route path="/admin/work-on-hold" element={<WorkOnHold />} />
+          <Route path="/admin/todays-date-orders" element={<TodaysBookings />} />
+          <Route path="/admin/unassigned-orders" element={<UnassigendOrders />} />
+          <Route path="/admin/unauthorized" element={<UnauthorizedPage />} />
+          <Route path='/admin/adminUser' element={<AdminUser />} />
+          <Route path='/admin/farmer' element={<Farmer />} />
+          <Route path='/admin/pilot' element={<Pilot />} />
+          <Route path='/admin/copilot' element={<Copilot />} />
+          <Route path='/admin/dron-owner' element={<DroneOwner />} />
+          <Route path="/admin/successful-payments" element={<SuccessfulPaymentsCard />} />
+          <Route path="/admin/parital-payments" element={<PartialPaymentsCard />} />
+          <Route path="/admin/pending-payments" element={<PendingPaymentsCard />} />
+          <Route path="/admin/failed-payments" element={<FailedPaymentsCard/>} />
         </Routes>
       </div>
     </div>

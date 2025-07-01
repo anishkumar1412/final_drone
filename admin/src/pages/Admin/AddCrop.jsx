@@ -4,6 +4,8 @@ import { stateDistricts } from '../../assets/assets_admin/assets';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { AdminContext } from '../../context/AdminContext';
+import Swal from 'sweetalert2';
+
 
 function AddCrop() {
     const [cropImg, setCropImg] = useState(null);
@@ -20,50 +22,58 @@ function AddCrop() {
 
 
     const onSubmitHandle = async (event) => {
-        event.preventDefault();
+    event.preventDefault();
 
-        try {
-            if (!cropImg) {
-                return toast.error('Image not selected');
-            }
-
-            const formData = new FormData();
-            formData.append('image', cropImg);
-            formData.append('cropName', cropName);
-            formData.append('cropPerAcer',cropPerAcer)
-            console.log(formData)
-            // Log each field in formData to see if it's populated
-            formData.forEach((value, key) => {
-                console.log(`${key}: ${value}`);
-            });
-
-            const { data } = await axios.post(
-                `${backendUrl}/api/admin/addCrop`,
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                        Authorization: `Bearer ${token}`,
-                            
-                          
-                    },
-                }
-            );
-
-            if (data.success) {
-                toast.success(data.message);
-                // Reset all fields
-                setCropImg(null);
-                setCropeName('');
-
-            } else {
-                toast.error(data.message);
-            }
-        } catch (error) {
-            toast.error(error.message);
-            console.log(error);
+    try {
+        if (!cropImg) {
+            return toast.error('Image not selected');
         }
-    };
+
+        // Show SweetAlert2 loader
+        Swal.fire({
+            title: 'Uploading Crop...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const formData = new FormData();
+        formData.append('image', cropImg);
+        formData.append('cropName', cropName);
+        formData.append('cropPerAcer', cropPerAcer);
+
+        const { data } = await axios.post(
+            `${backendUrl}/api/admin/addCrop`,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        Swal.close(); // Close the loader
+
+        if (data.success) {
+            toast.success(data.message);
+            // Reset all fields
+            setCropImg(null);
+            setCropeName('');
+            setCropPerAcer(0);
+            window.location.reload();
+
+        } else {
+            toast.error(data.message);
+        }
+    } catch (error) {
+        Swal.close(); // Close loader in case of error
+        toast.error(error.message);
+        console.log(error);
+    }
+};
+
     
 
     return (
