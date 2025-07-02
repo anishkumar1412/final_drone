@@ -55,8 +55,8 @@ function App() {
         <Routes>
           <Route path='/admin/' element={<Dashboard />} />
           <Route path='/all-appointments' element={<Appointment />} />
-          <Route path='/add-doctor' element={<AddDrone />} />
-          <Route path='/add-crop' element={<AddCrop />} />
+          <Route path='/admin/add-doctor' element={<AddDrone />} />
+          <Route path='/admin/add-crop' element={<AddCrop />} />
           <Route path='/add-wd' element={<AddWorkingDay />} />
           <Route path='/doctor-list' element={<DroneList />} />
           <Route path='/upcoming-orders' element={<UpComingOrders />} />

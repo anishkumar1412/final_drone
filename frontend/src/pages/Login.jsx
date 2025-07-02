@@ -40,21 +40,49 @@ function Login() {
 
 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const endpoint = isRegistering
-      ? `${backendUrl}/api/auth/register`
-      : `${backendUrl}/api/auth/login`;
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
+  const endpoint = isRegistering
+    ? `${backendUrl}/api/auth/register`
+    : `${backendUrl}/api/auth/login`;
 
-      if (isRegistering && formData.pin.length < 6 || formData.pin.length > 6) {
-        alert('pin must be in 6 digit')
-        return
+  // Email regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Mobile number regex (10 digits)
+  const mobileRegex = /^[0-9]{10}$/;
+
+  try {
+    if (isRegistering) {
+      if (!emailRegex.test(formData.email)) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Email',
+          text: 'Please enter a valid email address.',
+        });
+        return;
       }
-      if (isRegistering && formData.password !== formData.confirmPassword) {
-        // Import Swal at the top if not already
 
+      if (!mobileRegex.test(formData.mobNumber)) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Mobile Number',
+          text: 'Mobile number must be exactly 10 digits.',
+        });
+        return;
+      }
+
+      if (formData.pin.length !== 6) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Pin Code',
+          text: 'PIN must be exactly 6 digits.',
+        });
+        return;
+      }
+
+      if (formData.password !== formData.confirmPassword) {
         Swal.fire({
           icon: 'error',
           title: 'Password Mismatch',
@@ -62,36 +90,32 @@ function Login() {
         });
         return;
       }
-
-
-      const response = await axios.post(endpoint, formData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
-        setUser(response.data.user);  // Update user state here
-
-        // console.log("name is the commona dfjsadfijhasiodf",response.data.user)
-
-        // // Update user state here
-
-        // console.log("User after setUser:", response.data.user); // To verify it's being set properly
-
-        toast.success(isRegistering ? "Registration successful" : "Login successful");
-        navigate('/');
-        window.location.reload()
-      } else {
-        toast.error(response.data.msg);
-      }
-
-    } catch (error) {
-      console.error("Error:", error.response?.data?.msg || error.message);
-      toast.error(error.response?.data?.msg || error.message);
     }
-  };
+
+    const response = await axios.post(endpoint, formData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.data.token) {
+      localStorage.setItem("token", response.data.token);
+      setUser(response.data.user);
+
+      toast.success(isRegistering ? "Registration successful" : "Login successful");
+
+      navigate('/');
+      window.location.reload();
+    } else {
+      toast.error(response.data.msg);
+    }
+
+  } catch (error) {
+    console.error("Error:", error.response?.data?.msg || error.message);
+    toast.error(error.response?.data?.msg || error.message);
+  }
+};
+
 
 
   const toggleForm = () => {
@@ -126,7 +150,7 @@ function Login() {
                   className="p-2 border border-gray-300 rounded-md"
                 />
                 <input
-                  type="text"
+                  type="number"
                   name="mobNumber"
                   placeholder="Enter Mob Number"
                   value={formData.mobNumber}
@@ -195,28 +219,8 @@ function Login() {
                   onChange={handleChange}
                   className="p-2 border border-gray-300 rounded-md"
                 />
-                {/* <input
-                    type="text"
-                    name="panchayatName"
-                    placeholder="Enter Panchayat Name"
-                    value={formData.panchayatName}
-                    onChange={handleChange}
-                    className="p-2 border border-gray-300 rounded-md"
-                  /> */}
-                {/* <select
-                    name="organisation"
-                    value={formData.organisation}
-                    onChange={handleChange}
-                    className="p-2 border border-gray-300 rounded-md"
-                  >
-                    <option value="">Select Organisation</option>
-                  </select>
-                  <input
-                    type="file"
-                    name="file"
-                    onChange={handleFileChange}
-                    className="p-2 border border-gray-300 rounded-md"
-                  /> */}
+           
+            
               </>
             )}
             <input

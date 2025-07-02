@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React, { useContext, useState } from 'react';
 import { AdminContext } from '../../context/AdminContext';
+import Swal from 'sweetalert2';
 
 function DroneList() {
   const { drones, removeDrone, updateDroneAvailability } = useContext(AdminContext);
@@ -8,14 +9,36 @@ function DroneList() {
   const {backendUrl,aToken,permissions,token} = useContext(AdminContext)
 
   const handleAvailabilityChange = async (droneId, currentAvailability) => {
-    try {
-      const newAvailability = !currentAvailability;
-      await axios.post(`${backendUrl}/api/admin/changeAvailability/${droneId}`, { availability: newAvailability });
-      updateDroneAvailability(droneId, newAvailability);
-    } catch (error) {
-      console.error("Error updating availability:", error);
-    }
-  };
+  try {
+    const newAvailability = !currentAvailability;
+
+    await axios.post(`${backendUrl}/api/admin/changeAvailability/${droneId}`, {
+      availability: newAvailability,
+    });
+
+    updateDroneAvailability(droneId, newAvailability);
+
+    // Show SweetAlert popup
+    Swal.fire({
+      title: 'Success!',
+      text: `Drone is now marked as ${newAvailability ? 'Available' : 'Unavailable'}.`,
+      icon: 'success',
+      confirmButtonText: 'OK',
+    }).then(() => {
+      // Reload after user clicks "OK"
+      window.location.reload();
+    });
+
+  } catch (error) {
+    console.error("Error updating availability:", error);
+    Swal.fire({
+      title: 'Error!',
+      text: 'Failed to update drone availability.',
+      icon: 'error',
+      confirmButtonText: 'OK',
+    });
+  }
+};
   // const token = localStorage.getItem("aToken") || localStorage.getItem("dToken");
 
   // ✅ Check permission

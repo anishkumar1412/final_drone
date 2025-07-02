@@ -289,46 +289,47 @@ const getProfile = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };
-const updateProfile = async (req, res) => {
-  try {
-    const { userId, name, mobNumber, email, state, district, pin, villageName } = req.body;
-    const imageFile = req.file;
 
-    console.log('Headers:', req.headers);
+// const updateProfile = async (req, res) => {
+//   try {
+//     const { userId, name, mobNumber, email, state, district, pin, villageName } = req.body;
+//     const imageFile = req.file;
 
-    if (!name || !mobNumber || !state || !district || !pin || !villageName || !email) {
-      return res.json({ success: false, message: "Data Missing" });
-    }
+//     console.log('Headers:', req.headers);
 
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return res.json({ success: false, message: "User not found" });
-    }
+//     if (!name || !mobNumber || !state || !district || !pin || !villageName || !email) {
+//       return res.json({ success: false, message: "Data Missing" });
+//     }
 
-    // Update basic fields
-    await user.update({
-      name,
-      mobNumber,
-      email,
-      state,
-      district,
-      pin,
-      villageName
-    });
+//     const user = await User.findByPk(userId);
+//     if (!user) {
+//       return res.json({ success: false, message: "User not found" });
+//     }
 
-    // If an image is uploaded, upload it to cloudinary and update the user
-    if (imageFile) {
-      const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
-      const imageUrl = imageUpload.secure_url;
-      await user.update({ image: imageUrl });
-    }
+//     // Update basic fields
+//     await user.update({
+//       name,
+//       mobNumber,
+//       email,
+//       state,
+//       district,
+//       pin,
+//       villageName
+//     });
 
-    res.json({ success: true, message: 'Profile Updated' });
-  } catch (error) {
-    console.error(error);
-    res.json({ success: false, message: error.message });
-  }
-};
+//     // If an image is uploaded, upload it to cloudinary and update the user
+//     if (imageFile) {
+//       const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
+//       const imageUrl = imageUpload.secure_url;
+//       await user.update({ image: imageUrl });
+//     }
+
+//     res.json({ success: true, message: 'Profile Updated' });
+//   } catch (error) {
+//     console.error(error);
+//     res.json({ success: false, message: error.message });
+//   }
+// };
 
 
 // const getPilotTask = async (req,res) => {
@@ -350,6 +351,100 @@ const updateProfile = async (req, res) => {
 
 
 // Make sure Booking is properly imported
+
+const updateProfile = async (req, res) => {
+  try {
+    const {
+      userId,
+      name,
+      mobNumber,
+      email,
+      state,
+      district,
+      pin,
+      villageName
+    } = req.body;
+    const imageFile = req.file;
+
+    if (!name || !mobNumber || !state || !district || !pin || !villageName || !email) {
+      return res.json({ success: false, message: "Data Missing" });
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    // Update User table
+    await user.update({
+      name,
+      mobNumber,
+      email,
+      state,
+      district,
+      pin,
+      villageName
+    });
+
+    // Build updated user object
+    const updatedUser = {
+      id: user.id,
+      name,
+      role: user.role,
+      mobNumber,
+      email,
+      state,
+      district,
+      pin,
+      villageName,
+      image: user.image,
+      password: user.password, // if stored in booking (not recommended)
+      createdAt: user.createdAt,
+      updatedAt: new Date()
+    };
+
+    // Fetch all bookings and update those with matching userId
+    const allBookings = await Booking.findAll();
+
+    const userBookings = allBookings.filter(b => b.user?.id === user.id);
+
+    console.log("Total bookings:", allBookings.length);
+    console.log("User ID:", user.id);
+    console.log("User Bookings Found:", userBookings.length);
+
+
+    for (const booking of userBookings) {
+      await booking.update({ user: updatedUser });
+      console.log("Update succussefully")
+    }
+
+    // Handle image upload if provided
+    if (imageFile) {
+      const upload = await cloudinary.uploader.upload(imageFile.path, {
+        resource_type: "image"
+      });
+      await user.update({ image: upload.secure_url });
+
+      // Update image in booking user data too
+      for (const booking of userBookings) {
+        updatedUser.image = upload.secure_url;
+        await booking.update({ user: updatedUser });
+      }
+    }
+
+    await allBookings.save() // after update
+
+
+    res.json({ success: true, message: "Profile Updated" });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+
+
+
 
 const getPilotTask = async (req, res) => {
   try {
