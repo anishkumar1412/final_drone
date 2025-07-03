@@ -4,6 +4,8 @@ import { stateDistricts } from '../../assets/assets_admin/assets';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { AdminContext } from '../../context/AdminContext';
+import { useEffect } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 function AddDrone() {
   const [droneImg, setDroneImg] = useState(null);
@@ -32,6 +34,42 @@ function AddDrone() {
   const [battery,setBattery] = useState('')
   const [transmeterAndReciever,setTransmiterAndReciver]= useState('')
   const {backendUrl,token} = useContext(AdminContext)
+const { id } = useParams();
+const location = useLocation();     // ✅ Add this
+const droneData = location.state ?? {};
+  // ✅ Get drone data from navigation state
+const editMode = !!id;
+
+useEffect(() => {
+  if (!editMode || !droneData) return;
+
+  setModel(droneData.model || '');
+  setRange(droneData.range || '');
+  setSpeed(droneData.speed || '');
+  setWeight(droneData.weight || '');
+  setPrice(droneData.price || '');
+  setState(droneData.state || '');
+  setDistrict(droneData.district || '');
+  setOwner(droneData.owner || '');
+  setPropeller(droneData.propeller || '');
+  setArms(droneData.arms || '');
+  setMotor(droneData.motor || '');
+  setLGear(droneData.lGear || '');
+  setNozzle(droneData.nozzle || '');
+  setNutBold(droneData.nutBold || '');
+  setBableBare(droneData.bableBare || '');
+  setLnkey(droneData.lnkey || '');
+  setWaterPump(droneData.waterPump || '');
+  setPipQty(droneData.pipeQty || '');
+  setCharger(droneData.charger || '');
+  setChargerCable(droneData.chargerCable || '');
+  setChargerPcable(droneData.chargerPcable || '');
+  setExtensionBoard(droneData.extaintionBoard || '');
+  setBattery(droneData.battery || '');
+  setTransmiterAndReciver(droneData.transmeterAndReciever || '');
+  setDroneImg(null);
+}, [editMode, droneData]);
+
 
 
 
@@ -44,98 +82,76 @@ function AddDrone() {
     setDistrict(e.target.value);
   };
 
-  const onSubmitHandle = async (event) => {
-    event.preventDefault();
+ const navigate = useNavigate(); // 🔁 Add this at the top with other hooks
 
-    
+const onSubmitHandle = async (event) => {
+  event.preventDefault();
 
-    try {
-      if (!droneImg) {
-        return toast.error('Image not selected');
-      }
-
-      const formData = new FormData();
-      formData.append('image', droneImg);
-      formData.append('model', model);
-      formData.append('range', range);
-      formData.append('speed', speed);
-      formData.append('weight', weight);
-      formData.append('price', price);
-      formData.append('district', district);
-      formData.append('state', state);
-      formData.append('owner', owner);
-      formData.append('propeller', propeller);
-      formData.append('arms', arms);
-      formData.append('motor', motor);
-      formData.append('lGear', lGear);
-      formData.append('nozzle', nozzle);
-      formData.append('nutBold', nutBold);
-      formData.append('bableBare', bableBare);
-      formData.append('lnkey', lnkey);
-      formData.append('waterPump', waterPump);
-      formData.append('pipeQty', pipeQty);
-      formData.append('charger', charger);
-      formData.append('chargerCable', chargerCable);
-      formData.append('chargerPcable', chargerPcable);
-      formData.append('extaintionBoard', extaintionBoard);
-      formData.append('battery', battery);
-      formData.append('transmeterAndReciever', transmeterAndReciever);
-
-      console.log(formData)
-      // Log each field in formData to see if it's populated
-      formData.forEach((value, key) => {
-        console.log(`${key}: ${value}`);
-      });
-
-      const { data } = await axios.post(
-        `${backendUrl}/api/admin/addDrone`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`,
-                            
-          },
-        }
-      );
-
-      if (data.success) {
-        toast.success(data.message);
-        // Reset all fields
-        setDroneImg(null);
-        setModel('');
-        setRange('');
-        setSpeed('');
-        setWeight('');
-        setPrice('');
-        setDistrict('');
-        setState('');
-        setOwner('');
-        setPropeller('');
-        setArms('');
-        setMotor('');
-        setLGear('');
-        setNozzle('');
-        setNutBold('');
-        setBableBare('');
-        setLnkey('');
-        setWaterPump('');
-        setPipQty('');
-        setCharger('');
-        setChargerCable('');
-        setChargerPcable('');
-        setExtensionBoard('');
-        setBattery('');
-        setTransmiterAndReciver('');
-        
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error(error.message);
-      console.log(error);
+  try {
+    // ✅ Only require image in Add mode
+    if (!editMode && !droneImg) {
+      return toast.error('Image not selected');
     }
-  };
+
+    const formData = new FormData();
+    if (droneImg) formData.append('image', droneImg); // Only append if selected
+
+    formData.append('model', model);
+    formData.append('range', range);
+    formData.append('speed', speed);
+    formData.append('weight', weight);
+    formData.append('price', price);
+    formData.append('district', district);
+    formData.append('state', state);
+    formData.append('owner', owner);
+    formData.append('propeller', propeller);
+    formData.append('arms', arms);
+    formData.append('motor', motor);
+    formData.append('lGear', lGear);
+    formData.append('nozzle', nozzle);
+    formData.append('nutBold', nutBold);
+    formData.append('bableBare', bableBare);
+    formData.append('lnkey', lnkey);
+    formData.append('waterPump', waterPump);
+    formData.append('pipeQty', pipeQty);
+    formData.append('charger', charger);
+    formData.append('chargerCable', chargerCable);
+    formData.append('chargerPcable', chargerPcable);
+    formData.append('extaintionBoard', extaintionBoard);
+    formData.append('battery', battery);
+    formData.append('transmeterAndReciever', transmeterAndReciever);
+    console.log(droneData.id)
+    const endpoint = editMode
+      ? `${backendUrl}/api/admin/updateDrone/${id}`
+      : `${backendUrl}/api/admin/addDrone`;
+
+    const method = editMode ? 'put' : 'post';
+
+    const { data } = await axios({
+      method,
+      url: endpoint,
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (data.success) {
+      toast.success(data.message);
+
+      setTimeout(() => {
+        navigate('/admin/doctor-list'); // ✅ redirect to drone list after success
+      }, 1500);
+    } else {
+      toast.error(data.message);
+    }
+  } catch (error) {
+    toast.error(error.message || 'Something went wrong');
+    console.log(error);
+  }
+};
+
 
   return (
     <form className="m-5 w-full max-h-[80vh] overflow-y-auto" onSubmit={onSubmitHandle}>
@@ -459,10 +475,10 @@ function AddDrone() {
         
        
       </div>
-  
-      <button className="bg-primary px-10 py-3 mt-4 text-white rounded-full">
-        Add Drone
-      </button>
+ <button className="bg-primary px-10 py-3 mt-4 text-white rounded-full">
+  {editMode ? 'Update Drone' : 'Add Drone'}
+</button>
+
     </div>
   </form>
   

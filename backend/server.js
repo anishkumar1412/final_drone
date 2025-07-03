@@ -14,7 +14,7 @@ app.use("/", express.static(path.join(__dirname, "../frontend/dist")));
 
 // Serve admin build
 app.use("/admin", express.static(path.join(__dirname, "../admin/dist")));
-
+ 
 // Handle Vite SPA fallback
 app.get("*", (req, res) => {
   if (req.path.startsWith("/admin")) {

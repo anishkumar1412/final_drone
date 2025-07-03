@@ -144,6 +144,69 @@ const addDrone = async (req, res) => {
   }
 };
 
+const updateDrone = async (req, res) => {
+  try {
+    const droneId = req.params.id;
+
+    const {
+      model, range, speed, weight, price, district, state, owner, propeller, arms,
+      motor, lGear, nozzle, nutBold, bableBare, lnkey, waterPump, pipeQty, charger,
+      chargerCable, chargerPcable, extaintionBoard, battery, transmeterAndReciever
+    } = req.body;
+
+    const imageFile = req.file;
+
+    // Find the drone first
+    const drone = await Drone.findByPk(droneId);
+    if (!drone) {
+      return res.status(404).json({ success: false, message: "Drone not found" });
+    }
+
+    let imageUrl = drone.image;
+
+    // If image file is provided, upload and update the URL
+    if (imageFile) {
+      const uploaded = await cloudinary.uploader.upload(imageFile.path, {
+        resource_type: "image",
+      });
+      imageUrl = uploaded.secure_url;
+    }
+
+    // Update the drone
+    await drone.update({
+      model,
+      range,
+      speed,
+      weight,
+      price,
+      district,
+      state,
+      owner,
+      propeller,
+      arms,
+      motor,
+      lGear,
+      nozzle,
+      nutBold,
+      bableBare,
+      lnkey,
+      waterPump,
+      pipeQty,
+      charger,
+      chargerCable,
+      chargerPcable,
+      extaintionBoard,
+      battery,
+      transmeterAndReciever,
+      image: imageUrl,
+    });
+
+    res.status(200).json({ success: true, message: "Drone updated successfully", drone });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 const addCrop = async (req, res) => {
   try {
@@ -607,4 +670,4 @@ const deleteWorkingDay = async (req, res) => {
 };
 
 
-export { addDrone, getAllBookings, loginAdmin, adminCancelBooking, removeDrone, changeAvailability, addCrop, removeCrop, confirmOrder, updatePilot, updateCoPilot, addWorkingDays, getWorkingDays, deleteWorkingDay }
+export { addDrone, getAllBookings, loginAdmin, adminCancelBooking, removeDrone, changeAvailability, addCrop, removeCrop, confirmOrder, updatePilot, updateCoPilot, addWorkingDays, getWorkingDays, deleteWorkingDay,updateDrone }
