@@ -434,7 +434,7 @@ const updateProfile = async (req, res) => {
 
     // await allBookings.save() // after update
 
-    res.json({ success: true, message: "Profile Updated from new one" });
+    res.json({ success: true, message: "Profile Updated" });
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });

@@ -8,24 +8,39 @@ function DroneList() {
   const [selectedDrone, setSelectedDrone] = useState(null);
   const {backendUrl,aToken,permissions,token} = useContext(AdminContext)
 
-  const handleAvailabilityChange = async (droneId, currentAvailability) => {
+
+
+const handleAvailabilityChange = async (droneId, currentAvailability) => {
   try {
     const newAvailability = !currentAvailability;
 
+    // Show confirmation prompt before making API call
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: `Do you want to mark this drone as ${newAvailability ? 'Available' : 'Unavailable'}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, update it!',
+    });
+
+    if (!result.isConfirmed) return; // If user cancels, exit
+
+    // Proceed with API call
     await axios.post(`${backendUrl}/api/admin/changeAvailability/${droneId}`, {
       availability: newAvailability,
     });
 
     updateDroneAvailability(droneId, newAvailability);
 
-    // Show SweetAlert popup
+    // Show success message
     Swal.fire({
       title: 'Success!',
       text: `Drone is now marked as ${newAvailability ? 'Available' : 'Unavailable'}.`,
       icon: 'success',
       confirmButtonText: 'OK',
     }).then(() => {
-      // Reload after user clicks "OK"
       window.location.reload();
     });
 
@@ -39,6 +54,7 @@ function DroneList() {
     });
   }
 };
+
   // const token = localStorage.getItem("aToken") || localStorage.getItem("dToken");
 
   // ✅ Check permission

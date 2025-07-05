@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { AppContext } from "../Context/AppContext";
 
 const Navbar = ({ bgColor = "#4B5563" }) => {
@@ -23,6 +23,7 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNavbarScrolled, setIsNavbarScrolled] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const navigate = useNavigate()
 
   useEffect(() => {
     const handleScroll = () => setIsNavbarScrolled(window.scrollY > 10);
@@ -44,6 +45,8 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
     setToken(null);
     localStorage.removeItem("token");
     setIsProfileMenuOpen(false);
+    navigate('/')
+    window.location.reload()
   };
 
   return (
@@ -105,7 +108,8 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
                 onClick={handleProfileClick}
                 className="text-white hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium"
               >
-                {user?.name || "Hi Profile "}
+               {user?.name?.split(" ")[0] || "Hi Profile"}
+
                 <img
                   src={user?.image || "/default-profile.jpg"}
                   alt="Profile"
