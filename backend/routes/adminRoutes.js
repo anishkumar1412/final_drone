@@ -1,5 +1,5 @@
 import express from 'express'
-import { addCrop, addDrone, adminCancelBooking, changeAvailability, getAllBookings, getWorkingDays, loginAdmin, removeCrop, removeDrone, confirmOrder, updatePilot, updateCoPilot, registerAdmins, loginAdmins, getAllAdmins, addWorkingDays, deleteWorkingDay } from '../controllers/adminControllers.js'
+import { addCrop, addDrone, adminCancelBooking, changeAvailability, getAllBookings, getWorkingDays, loginAdmin, removeCrop, removeDrone, confirmOrder, updatePilot, updateCoPilot, registerAdmins, loginAdmins, getAllAdmins, addWorkingDays, deleteWorkingDay, updateDrone } from '../controllers/adminControllers.js'
 import upload from '../middleware/multer.js'
 import authAdmin from '../middleware/authAdmin.js'
 import { assignBooking } from '../controllers/bookingController.js'
@@ -33,7 +33,7 @@ router.post('/update-copilot/:bookingId', authAdmin, updateCoPilot)
 router.post("/admins-register", registerAdmins);
 router.post("/admins-login", loginAdmins);
 router.get("/all", verifyToken, checkPermission("Manage Users"), getAllAdmins);
-
+router.put('/updateDrone/:id', upload.single('image'), updateDrone);
 
 
 

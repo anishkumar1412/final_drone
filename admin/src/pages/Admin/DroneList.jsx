@@ -3,14 +3,15 @@ import React, { useContext, useState } from 'react';
 import { AdminContext } from '../../context/AdminContext';
 import Swal from 'sweetalert2';
 
+import { useNavigate } from 'react-router-dom';
 function DroneList() {
   const { drones, removeDrone, updateDroneAvailability } = useContext(AdminContext);
   const [selectedDrone, setSelectedDrone] = useState(null);
   const {backendUrl,aToken,permissions,token} = useContext(AdminContext)
 
+const navigate = useNavigate();
 
-
-const handleAvailabilityChange = async (droneId, currentAvailability) => {
+  const handleAvailabilityChange = async (droneId, currentAvailability) => {
   try {
     const newAvailability = !currentAvailability;
 
@@ -78,7 +79,7 @@ const handleAvailabilityChange = async (droneId, currentAvailability) => {
       <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'>
         {drones.map((item) => (
           <div
-            key={item._id}
+            key={item.id}
             className='border rounded-lg shadow-md overflow-hidden bg-white transition-all hover:shadow-lg cursor-pointer'
            
           >
@@ -132,6 +133,20 @@ const handleAvailabilityChange = async (droneId, currentAvailability) => {
                 )
               ))}
             </div>
+<div className="flex justify-center mt-4 gap-4">
+  <button
+    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+    onClick={() => {
+      navigate(`/admin/updateDrone/${selectedDrone.id}`, { state: selectedDrone });
+      window.location.reload();
+
+    }}
+  >
+    Update Drone
+  </button>
+
+</div>
+
 
             <div className='flex justify-center mt-4'>
               <button className='bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded' onClick={() => setSelectedDrone(null)}>Close</button>

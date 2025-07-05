@@ -54,6 +54,8 @@ function App() {
         <Sidebar />
         <Routes>
           <Route path='/admin/' element={<Dashboard />} />
+
+
           <Route path='/admin/all-appointments' element={<Appointment />} />
           <Route path='/admin/add-doctor' element={<AddDrone />} />
           <Route path='/admin/add-crop' element={<AddCrop />} />
@@ -87,6 +89,8 @@ function App() {
           <Route path="/admin/parital-payments" element={<PartialPaymentsCard />} />
           <Route path="/admin/pending-payments" element={<PendingPaymentsCard />} />
           <Route path="/admin/failed-payments" element={<FailedPaymentsCard/>} />
+           <Route path="/admin/updateDrone/:id" element={<AddDrone  />} />
+
         </Routes>
       </div>
     </div>

@@ -293,8 +293,11 @@ function Appointment() {
     if (
       villagePanchayat &&
       !item.villagePanchayat
+      
         ?.toLowerCase()
+        
         .includes(villagePanchayat.toLowerCase())
+        
     )
       return false;
 
@@ -542,6 +545,7 @@ function Appointment() {
               <th className="py-3 px-4 text-left border-r">Actions</th>
               <th className="py-3 px-4 text-left border-r">Progress</th>
               <th className="py-3 px-4 text-left border-r">Payment</th>
+              <th className="py-3 px-4 text-left border-r">Updated at</th>
             </tr>
           </thead>
 
@@ -878,6 +882,7 @@ function Appointment() {
                       Confirm Cancellation
                     </button>
                   </Modal>
+                  
 
                   {/* Aciton of work */}
 
@@ -1071,7 +1076,10 @@ function Appointment() {
 
 
                   <td className=" py-3 px-4" >Pending</td>
+                 
+                  <td className=" py-3 px-4  border-l-0" >{formatDate(item.updatedAt)}</td>
                 </tr>
+              
                 // ))
 
               ))
@@ -1082,6 +1090,13 @@ function Appointment() {
                 </td>
               </tr>
             )}
+      
+         
+               
+
+             
+            
+         
           </tbody>
         </table>
         <PaginationControls />
