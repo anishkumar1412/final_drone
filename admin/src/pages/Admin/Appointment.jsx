@@ -534,7 +534,7 @@ function Appointment() {
             <tr className="bg-gray-100 border-b">
               <th className="py-3 px-4 text-left border-r">#</th>
               <th className="py-3 px-4 text-left border-r">Drone</th>
-              <th className="py-3 px-4 text-left border-r">District</th>
+              <th className="py-3 px-4 text-left border-r">Village</th>
               <th className="py-3 px-4 text-left border-r">Date & Time</th>
               <th className="py-3 px-4 text-left border-r">User</th>
               <th className="py-3 px-4 text-left border-r">Price</th>
