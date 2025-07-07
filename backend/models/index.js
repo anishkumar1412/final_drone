@@ -10,6 +10,9 @@ import ReviewModel from "./ReviewModel.js";
 import EnquiryModel from "./Enquiry.model.js";
 import ComplaintModel from "./Complaint.model.js";
 
+import PermissionModel from "./PermissionModel.js";
+import Admin from "./Admin.js";
+
 
 // Initialize Sequelize
 const sequelize = new Sequelize(
@@ -56,6 +59,8 @@ db1.Refund = RefundModel(sequelize,DataTypes)
 db1.Review = ReviewModel(sequelize,DataTypes)
 db1.Enquiry = EnquiryModel(sequelize,DataTypes)
 db1.Complaint = ComplaintModel(sequelize,DataTypes)
+db1.Admin = Admin(sequelize,DataTypes)
+db1.Permissions = PermissionModel(sequelize,DataTypes)
 
 
 // Booking belongs to User as Pilot

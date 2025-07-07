@@ -4,7 +4,7 @@ import { v2 as cloudinary } from 'cloudinary'
 import jwt from 'jsonwebtoken'
 import mongoose from 'mongoose';
 // import Crop from '../models/cropModel.js';
-import { Admin } from '../models/Admin.js';
+
 import bcrypt from 'bcryptjs'
 // import WorkingDay from '../models/WorkingDay.js'
 
@@ -239,12 +239,19 @@ const addCrop = async (req, res) => {
 };
 
 
+ // Adjust path based on your structure
+
 const loginAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
-      const token = jwt.sign(email + password, process.env.JWT_SECRET)
+      const token = jwt.sign(
+        { isSuperAdmin: true, email,role: "superadmin"},
+        process.env.JWT_SECRET,
+      
+       
+      );
       res.json({ success: true, token })
     } else {
       res.json({ success: false, message: "Invalid credentials" })
@@ -255,6 +262,9 @@ const loginAdmin = async (req, res) => {
 
   }
 }
+
+
+
 
 export const registerAdmins = async (req, res) => {
   try {
@@ -669,5 +679,36 @@ const deleteWorkingDay = async (req, res) => {
   }
 };
 
+ export const getAdminProfile = async (req, res) => {
+  try {
+    console.log("Extracted Admin ID:", req.id);
+    console.log("object")
+    console.log(req.body);
+
+    if (!req.id || !mongoose.Types.ObjectId.isValid(req.id)) {
+      return res.status(400).json({ message: "Invalid Admin ID" });
+    }
+
+    const admin = await Admin.findById(req.id).select("-password");
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    res.status(200).json({ success: true, admin });
+  } catch (error) {
+    console.error("Error fetching admin:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+export  const getAllPermissions = async (req, res) => {
+  try {
+    const permissions = await db1.Permissions.findAll({ order: [["name", "ASC"]] });
+    res.status(200).json(permissions);
+  } catch (error) {
+    console.error("Get permissions error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 export { addDrone, getAllBookings, loginAdmin, adminCancelBooking, removeDrone, changeAvailability, addCrop, removeCrop, confirmOrder, updatePilot, updateCoPilot, addWorkingDays, getWorkingDays, deleteWorkingDay,updateDrone }
