@@ -12,36 +12,51 @@ function MyProfile() {
     const [isEdit, setIsEdit] = useState(false);
     const [image, setImage] = useState(null);
 
-    const updateUserProfileData = async () => {
-        try {
-            const formData = new FormData();
-            formData.append('userId', userData.id);
-            formData.append('name', userData.name);
-            formData.append('mobNumber', userData.mobNumber);
-            formData.append('email', userData.email);
-            formData.append('state', userData.state);
-            formData.append('district', userData.district);
-            formData.append('pin', userData.pin);
-            formData.append('villageName', userData.villageName);
-            if (image) formData.append('image', image);
+   const updateUserProfileData = async () => {
+    try {
+        // Email and Mobile Number validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /^[6-9]\d{9}$/;
 
-            const { data } = await axios.post(`${backendUrl}/api/auth/update-profile`, formData, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-
-            if (data.success) {
-                toast.success(data.message);
-                await loadUserProfileData();
-                setIsEdit(false);
-                setImage(null);
-            } else {
-                toast.error(data.message);
-            }
-        } catch (error) {
-            console.error(error);
-            toast.error(error.message);
+        if (!emailRegex.test(userData.email)) {
+            toast.error("Please enter a valid email address.");
+            return;
         }
-    };
+
+        if (!phoneRegex.test(userData.mobNumber)) {
+            toast.error("Please enter a valid 10-digit mobile number starting with 6-9.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('userId', userData.id);
+        formData.append('name', userData.name);
+        formData.append('mobNumber', userData.mobNumber);
+        formData.append('email', userData.email);
+        formData.append('state', userData.state);
+        formData.append('district', userData.district);
+        formData.append('pin', userData.pin);
+        formData.append('villageName', userData.villageName);
+        if (image) formData.append('image', image);
+
+        const { data } = await axios.post(`${backendUrl}/api/auth/update-profile`, formData, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (data.success) {
+            toast.success(data.message);
+            await loadUserProfileData();
+            setIsEdit(false);
+            setImage(null);
+        } else {
+            toast.error(data.message);
+        }
+    } catch (error) {
+        console.error(error);
+        toast.error(error.message);
+    }
+};
+
 
     return userData && (
         <div className='w-full flex items-center justify-center bg-gray-50 py-24'>

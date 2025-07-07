@@ -176,33 +176,52 @@ const BookProduct = () => {
   };
 
 
+const normalizeDate = (date) => {
+  const d = new Date(date);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+};
+
 const handleStartDateChange = (date) => {
   setIsCalendarOpen(false);
   setStartDate(date);
 
   if (workingDays > 0) {
-    let calculatedEndDate = new Date(date);
-    let daysAdded = 1;  // Start counting from 1 because start date counts as day 1
-
     const bookingsArray = Array.isArray(drone.bookings) ? drone.bookings : [];
 
-    while (daysAdded < workingDays) {
-      calculatedEndDate = addDays(calculatedEndDate, 1);
+    // Convert booking ranges to string dates for fast comparison
+    const bookedDatesSet = new Set();
+    bookingsArray.forEach((booking) => {
+      const start = new Date(booking.startDate);
+      const end = new Date(booking.endDate);
+      let current = new Date(start);
 
-      const isBooked = bookingsArray.some((booking) => {
-        const bookingStart = new Date(booking.startDate);
-        const bookingEnd = new Date(booking.endDate);
-        return calculatedEndDate >= bookingStart && calculatedEndDate <= bookingEnd;
-      });
+      while (current <= end) {
+        bookedDatesSet.add(current.toISOString().split("T")[0]); // Store as yyyy-mm-dd
+        current.setDate(current.getDate() + 1);
+      }
+    });
 
-      if (!isBooked) {
-        daysAdded++;
+    // Start calculating the end date
+    let calculatedEndDate = new Date(date);
+    let daysCounted = 0;
+
+    while (daysCounted < workingDays) {
+      const dateStr = calculatedEndDate.toISOString().split("T")[0];
+
+      if (!bookedDatesSet.has(dateStr)) {
+        daysCounted++;
+      }
+
+      if (daysCounted < workingDays) {
+        calculatedEndDate.setDate(calculatedEndDate.getDate() + 1);
       }
     }
 
-    setEndDate(calculatedEndDate);
+    setEndDate(new Date(calculatedEndDate));
   }
 };
+
+
 
 
 

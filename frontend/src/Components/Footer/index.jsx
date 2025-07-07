@@ -31,31 +31,36 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">
-              Quick Links
-            </h3>
+            <h3 className="text-lg font-semibold text-white mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm">
               {[
-                "Home",
-                "About Us",
-                "Services",
-                "Blog",
-                "Partnership",
-                "Careers",
-                "Contact Us",
-                "Privacy Policy",
+                { name: "Home", path: "/" },
+                { name: "About", path: "/about" },
+                { name: "Booking", path: "/booking" },
+                { name: "Services", path: "/services" },
+                {
+                  name: "Product",
+                  path: "https://bookyourdrone.org/product-category/drone/",
+                },
+                { name: "Quote Calculator", path: "/quotecalculator" },
+                { name: "Training", path: "/training" },
+                { name: "Careers", path: "/career" },
+                { name: "Contact", path: "/contact" },
               ].map((link) => (
-                <li key={link}>
+                <li key={link.name}>
                   <a
-                    href="/"
+                    href={link.path}
                     className="hover:text-blue-400 transition-colors duration-200"
+                    target={link.path.startsWith("http") ? "_blank" : "_self"}
+                    rel={link.path.startsWith("http") ? "noopener noreferrer" : ""}
                   >
-                    {link}
+                    {link.name}
                   </a>
                 </li>
               ))}
             </ul>
           </div>
+
 
           {/* Contact Info */}
           <div>
