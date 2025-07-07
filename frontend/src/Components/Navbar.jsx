@@ -108,8 +108,7 @@ const Navbar = ({ bgColor = "#4B5563" }) => {
                 onClick={handleProfileClick}
                 className="text-white hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium"
               >
-               {user?.name?.split(" ")[0] || "Hi Profile"}
-
+                {user?.name.split(" ")[0] || "Hi Profile "}
                 <img
                   src={user?.image || "/default-profile.jpg"}
                   alt="Profile"

@@ -130,7 +130,7 @@ console.log(permissions);
       <p>Actions</p>
     </div>
 
-    {bookings.slice(0, 10).map((item, i) => (
+    {bookings.reverse().slice(0,10).map((item, i) => (
       <div
         className='sm:grid sm:grid-cols-[0.5fr_2fr_2fr_2fr_2fr_1.5fr_1.5fr_1.5fr] items-center text-gray-500 py-3 px-6 border-b hover:bg-gray-50 text-center'
         key={i}

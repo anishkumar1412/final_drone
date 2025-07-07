@@ -534,7 +534,7 @@ function Appointment() {
             <tr className="bg-gray-100 border-b">
               <th className="py-3 px-4 text-left border-r">#</th>
               <th className="py-3 px-4 text-left border-r">Drone</th>
-              <th className="py-3 px-4 text-left border-r">District</th>
+              <th className="py-3 px-4 text-left border-r">Village</th>
               <th className="py-3 px-4 text-left border-r">Date & Time</th>
               <th className="py-3 px-4 text-left border-r">User</th>
               <th className="py-3 px-4 text-left border-r">Price</th>
@@ -1077,7 +1077,18 @@ function Appointment() {
 
                   <td className=" py-3 px-4" >Pending</td>
                  
-                  <td className=" py-3 px-4  border-l-0" >{formatDate(item.updatedAt)}</td>
+                  <td className=" py-3 px-4  border-l-0" >{item.updatedAt
+                        ? new Date(item.updatedAt).toLocaleString("en-IN", {
+                          timeZone: "Asia/Kolkata",
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                          hour12: true,
+                        })
+                        : ""}</td>
                 </tr>
               
                 // ))
