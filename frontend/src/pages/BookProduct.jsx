@@ -176,50 +176,95 @@ const BookProduct = () => {
   };
 
 
-const normalizeDate = (date) => {
-  const d = new Date(date);
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-};
+  const normalizeDate = (date) => {
+    const d = new Date(date);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  };
+
+//  const handleStartDateChange = (date) => {
+//   setIsCalendarOpen(false);
+//   setStartDate(date);
+
+//   if (workingDays > 0) {
+//     // bookings might be a string from backend, parse it if needed
+//     const bookingsArray = Array.isArray(drone.bookings)
+//       ? drone.bookings
+//       : JSON.parse(drone.bookings || "[]");
+
+//     // Collect all booked dates in a Set (format: yyyy-mm-dd)
+//     const bookedDatesSet = new Set();
+//     bookingsArray.forEach(({ startDate, endDate }) => {
+//       const start = new Date(startDate);
+//       const end = new Date(endDate);
+//       const current = new Date(start);
+
+//       while (current <= end) {
+//         bookedDatesSet.add(current.toISOString().split("T")[0]);
+//         current.setDate(current.getDate() + 1);
+//       }
+//     });
+
+//     // Now compute endDate by skipping booked dates
+//     let tempDate = new Date(date);
+//     let countedDays = 0;
+
+//     while (countedDays < workingDays) {
+//       const dateStr = tempDate.toISOString().split("T")[0];
+//       if (!bookedDatesSet.has(dateStr)) {
+//         countedDays++;
+//       }
+
+//       if (countedDays < workingDays) {
+//         tempDate.setDate(tempDate.getDate() + 1);
+//       }
+//     }
+
+//     setEndDate(new Date(tempDate));
+//   }
+// };
+
 
 const handleStartDateChange = (date) => {
   setIsCalendarOpen(false);
   setStartDate(date);
 
   if (workingDays > 0) {
-    const bookingsArray = Array.isArray(drone.bookings) ? drone.bookings : [];
+    const bookingsArray = Array.isArray(drone.bookings)
+      ? drone.bookings
+      : JSON.parse(drone.bookings || "[]");
 
-    // Convert booking ranges to string dates for fast comparison
     const bookedDatesSet = new Set();
-    bookingsArray.forEach((booking) => {
-      const start = new Date(booking.startDate);
-      const end = new Date(booking.endDate);
+    bookingsArray.forEach(({ startDate, endDate }) => {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
       let current = new Date(start);
-
       while (current <= end) {
-        bookedDatesSet.add(current.toISOString().split("T")[0]); // Store as yyyy-mm-dd
+        bookedDatesSet.add(current.toISOString().split("T")[0]);
         current.setDate(current.getDate() + 1);
       }
     });
 
-    // Start calculating the end date
-    let calculatedEndDate = new Date(date);
-    let daysCounted = 0;
+    let tempDate = new Date(date);
+    let counted = 0;
+    let lastValidDate = null;
 
-    while (daysCounted < workingDays) {
-      const dateStr = calculatedEndDate.toISOString().split("T")[0];
+    // Loop until we collect the required number of valid (non-booked) days
+    while (counted < workingDays) {
+      const dateStr = tempDate.toISOString().split("T")[0];
 
       if (!bookedDatesSet.has(dateStr)) {
-        daysCounted++;
+        counted++;
+        lastValidDate = new Date(tempDate); // update only if valid
       }
 
-      if (daysCounted < workingDays) {
-        calculatedEndDate.setDate(calculatedEndDate.getDate() + 1);
-      }
+      tempDate.setDate(tempDate.getDate() + 1); // move to next day
     }
 
-    setEndDate(new Date(calculatedEndDate));
+    setEndDate(lastValidDate); // this is the last non-booked day counted
   }
 };
+
+
 
 
 
