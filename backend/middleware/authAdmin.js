@@ -1,30 +1,31 @@
 import jwt from "jsonwebtoken";
 
-// Admin authentication middleware
-
 const authAdmin = async (req, res, next) => {
-    try {
+  try {
+    const authHeader = req.headers.authorization;
 
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return res.json({ success: false, message: "Not Authorized Login Again no header" });
-        }
-
-        const atoken = authHeader.split(" ")[1]; // Extract token
-        console.log("Extracted Token:", atoken);
-
-        const token_decode = jwt.verify(atoken, process.env.JWT_SECRET)
-
-        if (token_decode !== process.env.ADMIN_EMAIL + process.env.ADMIN_PASSWORD) {
-            return res.json({ success: false, message: 'Not Authorized Login Again' })
-        }
-
-        next()
-
-    } catch (error) {
-        console.log(error)
-        res.json({ success: false, message: error.message })
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ success: false, message: "Not Authorized: No token provided" });
     }
-}
 
-export default authAdmin
+    const token = authHeader.split(" ")[1];
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Decoded Superadmin Token:", decoded);
+
+    if (decoded.email !== process.env.ADMIN_EMAIL || !decoded.isSuperAdmin || decoded.role !== "superadmin") {
+      return res.status(403).json({ success: false, message: "Not Authorized: Invalid super admin" });
+    }
+
+    req.isSuperAdmin = true;
+    req.user = decoded;
+   
+    next();
+
+  } catch (error) {
+    console.error("authAdmin error:", error);
+    res.status(403).json({ success: false, message: "Invalid or expired token" });
+  }
+};
+
+export default authAdmin;

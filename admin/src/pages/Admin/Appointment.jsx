@@ -335,7 +335,7 @@ function Appointment() {
     return true;
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(20); // Number of items per page
+  const [itemsPerPage] = useState(15); // Number of items per page
 
   // ... existing useEffect and other functions ...
 
